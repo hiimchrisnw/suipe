@@ -13,7 +13,17 @@ export type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-app.use("*", cors({ origin: "http://localhost:5173" }))
+app.use(
+  "*",
+  cors({
+    origin: (origin) => {
+      const allowed = ["http://localhost:5173", /\.pages\.dev$/, /\.cedwards33\.workers\.dev$/]
+      return allowed.some((o) => (typeof o === "string" ? o === origin : o.test(origin)))
+        ? origin
+        : ""
+    },
+  }),
+)
 
 const routes = app
   .get("/health", (c) =>

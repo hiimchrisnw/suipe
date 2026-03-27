@@ -120,20 +120,6 @@ export function UploadPage() {
         <DropZone onFileSelect={handleFileSelect} preview={preview} isVideo={isVideo} />
 
         <div>
-          <label htmlFor="source-url" className="mb-1 block text-sm font-medium text-gray-700">
-            Source URL
-          </label>
-          <input
-            id="source-url"
-            type="url"
-            value={sourceUrl}
-            onChange={(e) => setSourceUrl(e.target.value)}
-            placeholder="https://..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-          />
-        </div>
-
-        <div>
           <label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700">
             Description
           </label>
