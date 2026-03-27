@@ -1,2 +1,2 @@
+export type { infer as Infer, ZodType } from "zod"
 export { z } from "zod"
-export type { ZodTypeAny, infer as Infer } from "zod"
