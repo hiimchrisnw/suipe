@@ -44,6 +44,21 @@
 
 Typecheck and lint run automatically via a pre-commit hook. Run `pnpm knip` periodically to detect dead code — it is not automated.
 
+## CI/CD
+
+GitHub Actions deploys automatically on push to `main`:
+- **`deploy-api.yml`** — deploys `packages/api` to Cloudflare Workers (runs only when `packages/api/**` changes)
+- **`deploy-web.yml`** — builds and deploys `apps/web` to Cloudflare Pages project "suipe" (runs only when `apps/web/**` changes)
+
+### Required GitHub Secrets
+
+Set these in the repo under **Settings → Secrets and variables → Actions**:
+
+| Secret | Where to get it |
+|--------|----------------|
+| `CLOUDFLARE_API_TOKEN` | [Cloudflare dashboard → API Tokens](https://dash.cloudflare.com/profile/api-tokens) — create a token with **Workers** and **Pages** edit permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → any domain → **Overview** sidebar, or **Workers & Pages** overview |
+
 ## Deferred — Do Not Implement Until Ready
 
 The following are planned but intentionally not installed or stubbed. Add them when the feature is actually being built.
