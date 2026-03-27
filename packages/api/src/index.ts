@@ -1,10 +1,11 @@
 import { zValidator } from "@hono/zod-validator"
 import { healthResponseSchema, z } from "@suipe/schemas"
 import { Hono } from "hono"
+import { swipes } from "./routes/swipes"
 
 export type Bindings = {
   DB: D1Database
-  BUCKET: R2Bucket
+  ASSETS: R2Bucket
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -17,6 +18,7 @@ const routes = app
     const { message } = c.req.valid("json")
     return c.json({ reply: message })
   })
+  .route("/swipes", swipes)
 
 export default app
 export type AppType = typeof routes
