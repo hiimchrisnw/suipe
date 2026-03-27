@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.7.6",
     "@suipe/schemas": "workspace:*",
     "hono": "^4.7.0"
   },
