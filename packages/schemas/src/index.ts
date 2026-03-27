@@ -7,3 +7,6 @@ export const healthResponseSchema = z.object({
   ok: z.boolean(),
   uptime: z.number(),
 })
+
+export type { InsertSwipe, Swipe } from "./swipe"
+export { insertSwipeSchema, swipeSchema } from "./swipe"

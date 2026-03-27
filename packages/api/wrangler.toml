@@ -6,7 +6,8 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "suipe"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "54dd4d52-1a8e-4315-84e7-39af6d010418"
+migrations_dir = "drizzle"
 
 [[r2_buckets]]
 binding = "BUCKET"
