@@ -1,7 +1,8 @@
 import type { Swipe } from "@suipe/schemas"
 import { useCallback } from "react"
 import { createPortal } from "react-dom"
-import { getImageUrl } from "../../lib/image-url"
+import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
+import { getMediaUrl } from "../../lib/image-url"
 
 interface SwipeModalProps {
   swipe: Swipe
@@ -9,12 +10,20 @@ interface SwipeModalProps {
 }
 
 export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
+  const deleteSwipe = useDeleteSwipe()
+  const url = getMediaUrl(swipe)
+
   const handleBackdropKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Escape") onClose()
     },
     [onClose],
   )
+
+  function handleDelete() {
+    if (!confirm("Delete this swipe?")) return
+    deleteSwipe.mutate(swipe.id, { onSuccess: onClose })
+  }
 
   return createPortal(
     <div
@@ -31,13 +40,9 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
       >
         {swipe.mediaType === "video" ? (
           // biome-ignore lint/a11y/useMediaCaption: user-uploaded videos don't have caption tracks
-          <video src={getImageUrl(swipe.imageUrl)} controls className="w-full rounded-lg" />
+          <video src={url} controls className="w-full rounded-lg" />
         ) : (
-          <img
-            src={getImageUrl(swipe.imageUrl)}
-            alt={swipe.description ?? ""}
-            className="w-full rounded-lg"
-          />
+          <img src={url} alt={swipe.description ?? ""} className="w-full rounded-lg" />
         )}
         <div className="mt-4 space-y-3">
           {swipe.description && <p className="text-gray-700">{swipe.description}</p>}
@@ -46,7 +51,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
               href={swipe.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline"
+              className="block text-sm text-blue-600 hover:underline"
             >
               {swipe.sourceUrl}
             </a>
@@ -63,6 +68,14 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
               ))}
             </div>
           )}
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleteSwipe.isPending}
+            className="text-sm text-red-500 hover:text-red-700"
+          >
+            {deleteSwipe.isPending ? "Deleting..." : "Delete"}
+          </button>
         </div>
       </div>
     </div>,

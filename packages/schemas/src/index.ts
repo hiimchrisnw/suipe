@@ -8,5 +8,5 @@ export const healthResponseSchema = z.object({
   uptime: z.number(),
 })
 
-export type { InsertSwipe, MediaType, Swipe } from "./swipe"
-export { insertSwipeSchema, mediaTypeSchema, swipeSchema } from "./swipe"
+export type { InsertSwipe, MediaType, SourceType, Swipe } from "./swipe"
+export { insertSwipeSchema, mediaTypeSchema, sourceTypeSchema, swipeSchema } from "./swipe"

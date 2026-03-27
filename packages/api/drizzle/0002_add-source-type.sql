@@ -1,0 +1,1 @@
+ALTER TABLE `swipes` ADD `source_type` text DEFAULT 'upload' NOT NULL;

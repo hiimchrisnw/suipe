@@ -8,6 +8,7 @@ import { swipes } from "./routes/swipes"
 export type Bindings = {
   DB: D1Database
   ASSETS: R2Bucket
+  ANTHROPIC_API_KEY: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
