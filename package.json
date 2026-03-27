@@ -8,11 +8,16 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "pnpm -r typecheck",
-    "knip": "knip"
+    "knip": "knip",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm typecheck && pnpm lint"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.9",
     "knip": "^6.0.6",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "^6.0.2"
   }
 }

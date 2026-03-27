@@ -13,7 +13,7 @@
 - React 19
 - TanStack Query v5 — server state, caching
 - Tailwind CSS v4 — utility-first styling via `@tailwindcss/vite` (no config file; configured in CSS)
-- Vite 6 — dev server and bundler
+- Vite 8 — dev server and bundler
 - Hono client (`hc`) — typed RPC calls to `packages/api`
 
 ### API (`packages/api`)
@@ -39,6 +39,10 @@
 - The `DB` wrangler binding ID in `packages/api/wrangler.toml` must be replaced with a real D1 database ID before deploying.
 - Biome replaces ESLint and Prettier. Run `pnpm lint` and `pnpm format` from the root.
 - Run `pnpm knip` from the root to detect dead code across all workspaces.
+
+## Quality Checks
+
+Typecheck and lint run automatically via a pre-commit hook. Run `pnpm knip` periodically to detect dead code — it is not automated.
 
 ## Deferred — Do Not Implement Until Ready
 
