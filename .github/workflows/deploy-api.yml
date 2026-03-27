@@ -2,9 +2,8 @@ name: Deploy API
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "packages/api/**"
+    branches:
+      - main
 
 jobs:
   deploy:

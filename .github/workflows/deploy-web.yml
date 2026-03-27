@@ -2,9 +2,8 @@ name: Deploy Web
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "apps/web/**"
+    branches:
+      - main
 
 jobs:
   deploy:
