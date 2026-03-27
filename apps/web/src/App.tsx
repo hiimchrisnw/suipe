@@ -1,7 +1,15 @@
+import { BrowsePage } from "./components/browse/browse-page"
+import { Nav } from "./components/nav"
+import { UploadPage } from "./components/upload/upload-page"
+import { usePathname } from "./lib/router"
+
 export function App() {
+  const pathname = usePathname()
+
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-      <h1 className="text-2xl font-bold">sUIpe</h1>
-    </main>
+    <div className="min-h-screen bg-white text-gray-900">
+      <Nav />
+      {pathname === "/upload" ? <UploadPage /> : <BrowsePage />}
+    </div>
   )
 }

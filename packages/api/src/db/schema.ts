@@ -6,6 +6,7 @@ export const swipes = sqliteTable("swipes", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   imageUrl: text("image_url").notNull(),
+  mediaType: text("media_type").notNull().default("image"),
   sourceUrl: text("source_url"),
   description: text("description"),
   tags: text("tags").notNull().default("[]"),

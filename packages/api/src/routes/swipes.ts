@@ -30,11 +30,15 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       httpMetadata: { contentType: file.type },
     })
 
+    const mediaType =
+      file.type === "image/gif" ? "gif" : file.type.startsWith("video/") ? "video" : "image"
+
     const db = createDb(c.env.DB)
     const [swipe] = await db
       .insert(schema.swipes)
       .values({
         imageUrl: key,
+        mediaType,
         sourceUrl: typeof sourceUrl === "string" ? sourceUrl : null,
         description: typeof description === "string" ? description : null,
         tags: JSON.stringify(tags),
