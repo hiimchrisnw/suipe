@@ -3,6 +3,7 @@ import { useFetchUrl } from "../../hooks/use-fetch-url"
 import { useSuggestTags } from "../../hooks/use-suggest-tags"
 import { useUpload } from "../../hooks/use-upload"
 import { DropZone } from "./drop-zone"
+import { TagInput } from "./tag-input"
 
 export function UploadPage() {
   const [file, setFile] = useState<File | null>(null)
@@ -61,7 +62,7 @@ export function UploadPage() {
 
     const tags = tagsInput
       .split(",")
-      .map((t) => t.trim())
+      .map((t) => t.trim().toLowerCase())
       .filter(Boolean)
 
     const tagsList = tags.length > 0 ? tags : undefined
@@ -133,28 +134,14 @@ export function UploadPage() {
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="tags"
-            className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700"
-          >
-            Tags
-            {suggestTags.isPending && (
-              <span className="text-xs font-normal text-gray-400">Suggesting tags...</span>
-            )}
-          </label>
-          <input
-            id="tags"
-            type="text"
-            value={tagsInput}
-            onChange={(e) => {
-              tagsEditedRef.current = true
-              setTagsInput(e.target.value)
-            }}
-            placeholder="typography, color, layout"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-          />
-        </div>
+        <TagInput
+          value={tagsInput}
+          onChange={(v) => {
+            tagsEditedRef.current = true
+            setTagsInput(v)
+          }}
+          isPending={suggestTags.isPending}
+        />
 
         <button
           type="submit"

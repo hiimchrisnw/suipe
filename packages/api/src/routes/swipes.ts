@@ -18,7 +18,7 @@ function parseTags(raw: unknown): string[] | null {
   if (typeof raw !== "string") return []
   const parsed: unknown = JSON.parse(raw)
   if (!Array.isArray(parsed) || !parsed.every((t) => typeof t === "string")) return null
-  return parsed as string[]
+  return (parsed as string[]).map((t) => t.toLowerCase())
 }
 
 function deriveMediaType(mimeType: string): string {
@@ -83,6 +83,8 @@ const swipes = new Hono<{ Bindings: Bindings }>()
         return c.json({ error: "Missing imageUrl" }, 400)
       }
 
+      const normalizedTags = (body.tags ?? []).map((t) => t.toLowerCase())
+
       const [swipe] = await db
         .insert(schema.swipes)
         .values({
@@ -91,11 +93,11 @@ const swipes = new Hono<{ Bindings: Bindings }>()
           sourceType: "external",
           sourceUrl: body.sourceUrl ?? null,
           description: body.description ?? null,
-          tags: JSON.stringify(body.tags ?? []),
+          tags: JSON.stringify(normalizedTags),
         })
         .returning()
 
-      return c.json({ ...swipe, tags: body.tags ?? [] }, 201)
+      return c.json({ ...swipe, tags: normalizedTags }, 201)
     }
 
     const body = await c.req.parseBody()
@@ -157,6 +159,20 @@ const swipes = new Hono<{ Bindings: Bindings }>()
 
     const rows = await query
     return c.json(rows.map(parseRow))
+  })
+  .get("/tags", async (c) => {
+    const db = createDb(c.env.DB)
+    const rows = await db.select({ tags: schema.swipes.tags }).from(schema.swipes)
+    const tagSet = new Set<string>()
+    for (const row of rows) {
+      const parsed: unknown = JSON.parse(row.tags)
+      if (Array.isArray(parsed)) {
+        for (const t of parsed) {
+          if (typeof t === "string" && t.length > 0) tagSet.add(t)
+        }
+      }
+    }
+    return c.json([...tagSet].sort())
   })
   .get("/:id", async (c) => {
     const id = c.req.param("id")
