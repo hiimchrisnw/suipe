@@ -1,22 +1,19 @@
 import type { Swipe } from "@suipe/schemas"
 import { useCallback, useState } from "react"
 import { useSwipes } from "../../hooks/use-swipes"
-import { useTags } from "../../hooks/use-tags"
-import { useSearchParam } from "../../lib/router"
+import { useSearchParamArray } from "../../lib/router"
 import { MasonryGrid } from "./masonry-grid"
+import { RecipeBuilder } from "./recipe-builder"
 import { SwipeModal } from "./swipe-modal"
-import { TagFilter } from "./tag-filter"
 
 export function BrowsePage() {
-  const activeTag = useSearchParam("tag")
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useSwipes(activeTag)
+  const emotions = useSearchParamArray("emotions")
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useSwipes(
+    emotions.length > 0 ? emotions : undefined,
+  )
   const [selected, setSelected] = useState<Swipe | null>(null)
 
   const swipes = data?.pages.flat() ?? []
-
-  // Use dedicated tags endpoint — paginated swipes only cover the loaded pages
-  const { data: tags } = useTags()
-  const allTags = tags ?? []
 
   // React 19 callback ref — returns cleanup function, no useEffect needed
   const sentinelRef = useCallback(
@@ -38,9 +35,13 @@ export function BrowsePage() {
 
   return (
     <div className="space-y-4 p-6">
-      <TagFilter tags={allTags} activeTag={activeTag} />
+      <RecipeBuilder emotions={emotions} />
       {isLoading ? (
         <p className="py-20 text-center text-gray-400">Loading...</p>
+      ) : swipes.length === 0 && emotions.length > 0 ? (
+        <p className="py-20 text-center text-gray-400">
+          No swipes match this combination. Try removing an emotion.
+        </p>
       ) : (
         <MasonryGrid swipes={swipes} onSelect={setSelected} />
       )}

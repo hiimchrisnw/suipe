@@ -1,4 +1,4 @@
-import { desc, eq, like } from "drizzle-orm"
+import { and, desc, eq, like } from "drizzle-orm"
 import { Hono } from "hono"
 import { createDb, schema } from "../db"
 import type { Bindings } from "../index"
@@ -153,7 +153,13 @@ const swipes = new Hono<{ Bindings: Bindings }>()
     return new Response(null, { status: 204 })
   })
   .get("/", async (c) => {
-    const tag = c.req.query("tag")
+    const rawTags = c.req.query("tags")
+    const tags: string[] = rawTags
+      ? rawTags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+      : []
     const rawLimit = Number(c.req.query("limit") ?? "30")
     const rawOffset = Number(c.req.query("offset") ?? "0")
     const limit = Math.min(Math.max(1, Number.isFinite(rawLimit) ? rawLimit : 30), 100)
@@ -168,8 +174,10 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       .offset(offset)
       .$dynamic()
 
-    if (tag) {
-      query = query.where(like(schema.swipes.tags, `%${JSON.stringify(tag)}%`))
+    if (tags.length > 0) {
+      query = query.where(
+        and(...tags.map((tag) => like(schema.swipes.tags, `%${JSON.stringify(tag)}%`))),
+      )
     }
 
     const rows = await query
