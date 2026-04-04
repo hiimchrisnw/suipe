@@ -16,24 +16,6 @@ function buildEmotionsUrl(next: string[]): string {
   return url.pathname + url.search
 }
 
-// Two small circles at the top-left and bottom-left of a junction pill.
-// Each circle's border curves inward at the meeting point, creating the
-// organic concave indent where adjacent capsule borders share an edge.
-function JunctionIndents() {
-  return (
-    <>
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-[5px] -top-[5px] h-2.5 w-2.5 rounded-full border border-gray-300 bg-white"
-      />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-[5px] -left-[5px] h-2.5 w-2.5 rounded-full border border-gray-300 bg-white"
-      />
-    </>
-  )
-}
-
 export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -71,26 +53,18 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
     navigate(buildEmotionsUrl(emotions.filter((e) => e !== tag)))
   }
 
-  const buttonConnected = emotions.length > 0
-
   return (
     <div className="flex justify-center py-2">
       <div ref={containerRef} className="relative inline-flex items-center">
-        {/* ── Emotion pills ────────────────────────────────────────────────────
-            Adjacent pills overlap by 1px so their borders share a single line.
-            JunctionIndents renders two small circles at the top-left and
-            bottom-left of each non-first pill, creating the concave indent
-            that makes the border curve organically inward at the junction. */}
         {emotions.map((emotion, i) => (
           <button
             key={emotion}
             type="button"
             onClick={() => handleRemoveEmotion(emotion)}
-            className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 py-1.5 text-sm font-medium text-gray-900 hover:border-gray-400"
+            className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-900 hover:border-gray-400"
             style={{ marginLeft: i === 0 ? 0 : -1 }}
             aria-label={`Remove ${emotion}`}
           >
-            {i > 0 && <JunctionIndents />}
             {emotion}
             <span aria-hidden="true" className="opacity-40">
               ×
@@ -98,13 +72,11 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
           </button>
         ))}
 
-        {/* ── "Add a feeling" button + dropdown ───────────────────────────────── */}
-        <div className="relative shrink-0" style={{ marginLeft: buttonConnected ? -1 : 0 }}>
-          {buttonConnected && <JunctionIndents />}
+        <div className="relative shrink-0" style={{ marginLeft: emotions.length > 0 ? -1 : 0 }}>
           <button
             type="button"
             onClick={handleOpenDropdown}
-            className="rounded-full border border-dashed border-gray-400 bg-white px-5 py-1.5 text-sm text-gray-500 hover:border-gray-600 hover:text-gray-700"
+            className="rounded-full border border-dashed border-gray-400 bg-white px-4 py-1.5 text-sm text-gray-500 hover:border-gray-600 hover:text-gray-700"
           >
             + Add a feeling
           </button>
@@ -130,8 +102,6 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
                 ) : (
                   filteredTags.map((tag) => (
                     <li key={tag}>
-                      {/* onMouseDown fires before the document mousedown (click-outside)
-                          listener, so the tag is committed before the dropdown closes */}
                       <button
                         type="button"
                         onMouseDown={(e) => {
