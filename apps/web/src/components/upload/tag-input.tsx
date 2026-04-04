@@ -24,7 +24,10 @@ export function TagInput({ value, onChange, isPending }: TagInputProps) {
 
   const suggestions =
     currentTagFragment.length > 0 && allTags
-      ? allTags.filter((t) => t.startsWith(currentTagFragment) && !existingTags.has(t))
+      ? allTags.filter(
+          (t) =>
+            t.toLowerCase().startsWith(currentTagFragment) && !existingTags.has(t.toLowerCase()),
+        )
       : []
 
   // Reset highlight when the typed fragment changes — computed during render, no effect needed

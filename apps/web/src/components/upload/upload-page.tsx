@@ -62,7 +62,10 @@ export function UploadPage() {
 
     const tags = tagsInput
       .split(",")
-      .map((t) => t.trim().toLowerCase())
+      .map((t) => {
+        const s = t.trim().toLowerCase()
+        return s.charAt(0).toUpperCase() + s.slice(1)
+      })
       .filter(Boolean)
 
     const tagsList = tags.length > 0 ? tags : undefined

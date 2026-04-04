@@ -14,11 +14,16 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary)
 }
 
+function toSentenceCase(t: string): string {
+  const s = t.trim().toLowerCase()
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 function parseTags(raw: unknown): string[] | null {
   if (typeof raw !== "string") return []
   const parsed: unknown = JSON.parse(raw)
   if (!Array.isArray(parsed) || !parsed.every((t) => typeof t === "string")) return null
-  return (parsed as string[]).map((t) => t.toLowerCase())
+  return (parsed as string[]).map(toSentenceCase)
 }
 
 function deriveMediaType(mimeType: string): string {
@@ -83,7 +88,7 @@ const swipes = new Hono<{ Bindings: Bindings }>()
         return c.json({ error: "Missing imageUrl" }, 400)
       }
 
-      const normalizedTags = (body.tags ?? []).map((t) => t.toLowerCase())
+      const normalizedTags = (body.tags ?? []).map(toSentenceCase)
 
       const [swipe] = await db
         .insert(schema.swipes)
