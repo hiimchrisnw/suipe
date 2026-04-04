@@ -63,24 +63,31 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
 
   return (
     <div className="flex justify-center py-2">
-      <div ref={containerRef} className="relative inline-flex items-center">
+      {/* ── Dark background container ──────────────────────────────────────────
+          bg-gray-900 + rounded-full provides the solid dark backdrop required
+          for the white-blob goo filter. overflow-hidden clips the dark bg to
+          the pill row shape. When no emotions are selected the dark container
+          is hidden so the button renders as a standalone dashed pill. */}
+      <div
+        ref={containerRef}
+        className={`relative inline-flex items-center${buttonConnected ? " overflow-hidden rounded-full bg-gray-900" : ""}`}
+      >
         {/* ── Gloopy blob layer ─────────────────────────────────────────────────
-            Dark blobs at the same positions as the text-layer pills.
-            The bg-white container provides the contrast needed for blur+contrast.
-            The PILL_GAP between blobs exposes dark gloopy material between pills,
-            making the connection visible above the white text-layer backgrounds.
-            Earlier blobs have higher z-index so the left edge of each pill
-            is covered by the preceding element (directional rightward gloop). */}
+            White blobs on the dark bg-gray-900 container. blur+contrast on a
+            dark background merges adjacent white blobs into liquid goo shapes.
+            PILL_GAP between blobs keeps them close enough to merge without
+            the text-layer white backgrounds fully covering the junction.
+            Earlier blobs have higher z-index for directional rightward gloop. */}
         {emotions.length > 0 && (
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 flex items-center overflow-hidden bg-white"
+            className="pointer-events-none absolute inset-0 flex items-center overflow-hidden"
             style={{ filter: "blur(8px) contrast(35)" }}
           >
             {emotions.map((emotion, i) => (
               <div
                 key={emotion}
-                className="shrink-0 rounded-full bg-gray-900 px-5 py-1.5 text-sm"
+                className="shrink-0 rounded-full bg-white px-5 py-1.5 text-sm"
                 style={{
                   marginLeft: i === 0 ? 0 : PILL_GAP,
                   color: "transparent",
@@ -94,7 +101,7 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
             ))}
             {/* Button blob — participates in the gloopy chain */}
             <div
-              className="shrink-0 rounded-full bg-gray-900 px-5 py-1.5 text-sm"
+              className="shrink-0 rounded-full bg-white px-5 py-1.5 text-sm"
               style={{
                 marginLeft: PILL_GAP,
                 color: "transparent",
@@ -116,7 +123,7 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
             key={emotion}
             type="button"
             onClick={() => handleRemoveEmotion(emotion)}
-            className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 py-1.5 text-sm font-medium text-gray-900 hover:border-gray-400"
+            className="relative flex shrink-0 items-center gap-1.5 rounded-full bg-white px-5 py-1.5 text-sm font-medium text-gray-900"
             style={{
               marginLeft: i === 0 ? 0 : PILL_GAP,
               zIndex: emotions.length + 2 - i,
@@ -141,7 +148,11 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
           <button
             type="button"
             onClick={handleOpenDropdown}
-            className="rounded-full border border-dashed border-gray-400 bg-white px-5 py-1.5 text-sm text-gray-500 hover:border-gray-600 hover:text-gray-700"
+            className={
+              buttonConnected
+                ? "rounded-full bg-white px-5 py-1.5 text-sm text-gray-500 hover:text-gray-700"
+                : "rounded-full border border-dashed border-gray-400 bg-white px-5 py-1.5 text-sm text-gray-500 hover:border-gray-600 hover:text-gray-700"
+            }
           >
             + Add a feeling
           </button>
