@@ -154,9 +154,19 @@ const swipes = new Hono<{ Bindings: Bindings }>()
   })
   .get("/", async (c) => {
     const tag = c.req.query("tag")
+    const rawLimit = Number(c.req.query("limit") ?? "30")
+    const rawOffset = Number(c.req.query("offset") ?? "0")
+    const limit = Math.min(Math.max(1, Number.isFinite(rawLimit) ? rawLimit : 30), 100)
+    const offset = Math.max(0, Number.isFinite(rawOffset) ? rawOffset : 0)
     const db = createDb(c.env.DB)
 
-    let query = db.select().from(schema.swipes).orderBy(desc(schema.swipes.createdAt)).$dynamic()
+    let query = db
+      .select()
+      .from(schema.swipes)
+      .orderBy(desc(schema.swipes.createdAt))
+      .limit(limit)
+      .offset(offset)
+      .$dynamic()
 
     if (tag) {
       query = query.where(like(schema.swipes.tags, `%${JSON.stringify(tag)}%`))

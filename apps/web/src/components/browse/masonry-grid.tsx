@@ -1,5 +1,5 @@
 import type { Swipe } from "@suipe/schemas"
-import { useCallback, useRef, useSyncExternalStore } from "react"
+import { useCallback, useMemo, useRef, useSyncExternalStore } from "react"
 import { SwipeCard } from "./swipe-card"
 
 interface MasonryGridProps {
@@ -16,22 +16,36 @@ function getColumnCount(width: number): number {
 }
 
 /**
- * Distributes items into columns by always placing the next item
- * into the shortest column — producing a Pinterest-style layout.
+ * Distributes items into columns incrementally — each item is assigned a column
+ * exactly once (keyed by id) and never moves. New items are placed into the
+ * shortest column using tracked pixel heights, so the grid stays balanced as
+ * pages are appended. A unit-height placeholder (1) is used until the
+ * ResizeObserver updates columnHeights with the real rendered value.
  */
-function distributeItems<T>(items: T[], columnCount: number): T[][] {
-  const columns: T[][] = Array.from({ length: columnCount }, () => [])
-  const heights = new Array<number>(columnCount).fill(0)
+function distributeIncrementally(
+  items: Swipe[],
+  columnCount: number,
+  assignments: Map<string, number>,
+  columnHeights: number[],
+): Swipe[][] {
+  while (columnHeights.length < columnCount) columnHeights.push(0)
 
   for (const item of items) {
-    let shortest = 0
-    for (let i = 1; i < columnCount; i++) {
-      if ((heights[i] ?? 0) < (heights[shortest] ?? 0)) shortest = i
+    if (!assignments.has(item.id)) {
+      let shortest = 0
+      for (let i = 1; i < columnCount; i++) {
+        if ((columnHeights[i] ?? 0) < (columnHeights[shortest] ?? 0)) shortest = i
+      }
+      assignments.set(item.id, shortest)
+      columnHeights[shortest] = (columnHeights[shortest] ?? 0) + 1
     }
-    columns[shortest]?.push(item)
-    heights[shortest] = (heights[shortest] ?? 0) + 1
   }
 
+  const columns: Swipe[][] = Array.from({ length: columnCount }, () => [])
+  for (const item of items) {
+    const col = assignments.get(item.id) ?? 0
+    columns[col]?.push(item)
+  }
   return columns
 }
 
@@ -67,7 +81,39 @@ export function MasonryGrid({ swipes, onSelect }: MasonryGridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const width = useContainerWidth(containerRef)
   const columnCount = getColumnCount(width)
-  const columns = distributeItems(swipes, columnCount)
+
+  // Persistent assignment state — survives page appends, resets on columnCount change
+  const assignmentsRef = useRef<Map<string, number>>(new Map())
+  const columnHeightsRef = useRef<number[]>([])
+  const prevColumnCountRef = useRef(0)
+
+  if (prevColumnCountRef.current !== columnCount) {
+    prevColumnCountRef.current = columnCount
+    assignmentsRef.current.clear()
+    columnHeightsRef.current = []
+  }
+
+  const columns = distributeIncrementally(
+    swipes,
+    columnCount,
+    assignmentsRef.current,
+    columnHeightsRef.current,
+  )
+
+  // Stable React 19 callback refs per column — update columnHeightsRef with actual px heights
+  const colRefs = useMemo(
+    () =>
+      Array.from({ length: columnCount }, (_, i) => (el: HTMLDivElement | null) => {
+        if (!el) return
+        const observer = new ResizeObserver((entries) => {
+          const h = entries[0]?.contentRect.height
+          if (h !== undefined) columnHeightsRef.current[i] = h
+        })
+        observer.observe(el)
+        return () => observer.disconnect()
+      }),
+    [columnCount],
+  )
 
   if (swipes.length === 0) {
     return <p className="py-20 text-center text-gray-400">No swipes yet</p>
@@ -81,7 +127,7 @@ export function MasonryGrid({ swipes, onSelect }: MasonryGridProps) {
     >
       {columns.map((col, colIndex) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: stable column order
-        <div key={colIndex} className="flex flex-col" style={{ gap: GAP }}>
+        <div key={colIndex} ref={colRefs[colIndex]} className="flex flex-col" style={{ gap: GAP }}>
           {col.map((swipe) => (
             <SwipeCard key={swipe.id} swipe={swipe} onSelect={onSelect} />
           ))}
