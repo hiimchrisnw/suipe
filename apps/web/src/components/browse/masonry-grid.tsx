@@ -93,6 +93,13 @@ export function MasonryGrid({ swipes, onSelect }: MasonryGridProps) {
     columnHeightsRef.current = []
   }
 
+  // When swipes empties (e.g. query key changed while new results load), clear
+  // stale assignments so the incoming set gets a fresh distribution.
+  if (swipes.length === 0) {
+    assignmentsRef.current.clear()
+    columnHeightsRef.current = []
+  }
+
   const columns = distributeIncrementally(
     swipes,
     columnCount,
