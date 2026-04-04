@@ -43,7 +43,7 @@ export function BrowsePage() {
           No swipes match this combination. Try removing an emotion.
         </p>
       ) : (
-        <MasonryGrid swipes={swipes} onSelect={setSelected} />
+        <MasonryGrid swipes={swipes} onSelect={setSelected} resetKey={emotions.join(",")} />
       )}
       <div ref={sentinelRef} aria-hidden="true" />
       {isFetchingNextPage && <p className="py-4 text-center text-gray-400">Loading more...</p>}

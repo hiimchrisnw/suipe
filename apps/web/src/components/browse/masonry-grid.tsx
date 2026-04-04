@@ -5,6 +5,7 @@ import { SwipeCard } from "./swipe-card"
 interface MasonryGridProps {
   swipes: Swipe[]
   onSelect: (swipe: Swipe) => void
+  resetKey?: string
 }
 
 const GAP = 16
@@ -77,25 +78,20 @@ function useContainerWidth(ref: React.RefObject<HTMLDivElement | null>): number 
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
 
-export function MasonryGrid({ swipes, onSelect }: MasonryGridProps) {
+export function MasonryGrid({ swipes, onSelect, resetKey }: MasonryGridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const width = useContainerWidth(containerRef)
   const columnCount = getColumnCount(width)
 
-  // Persistent assignment state — survives page appends, resets on columnCount change
+  // Persistent assignment state — survives page appends, resets on columnCount or resetKey change
   const assignmentsRef = useRef<Map<string, number>>(new Map())
   const columnHeightsRef = useRef<number[]>([])
   const prevColumnCountRef = useRef(0)
+  const prevResetKeyRef = useRef<string | undefined>(undefined)
 
-  if (prevColumnCountRef.current !== columnCount) {
+  if (prevColumnCountRef.current !== columnCount || prevResetKeyRef.current !== resetKey) {
     prevColumnCountRef.current = columnCount
-    assignmentsRef.current.clear()
-    columnHeightsRef.current = []
-  }
-
-  // When swipes empties (e.g. query key changed while new results load), clear
-  // stale assignments so the incoming set gets a fresh distribution.
-  if (swipes.length === 0) {
+    prevResetKeyRef.current = resetKey
     assignmentsRef.current.clear()
     columnHeightsRef.current = []
   }
