@@ -16,10 +16,23 @@ function buildEmotionsUrl(next: string[]): string {
   return url.pathname + url.search
 }
 
-// Gap between adjacent pills and between the last pill and the "Add a feeling" button.
-// A small positive gap exposes the dark blob layer between elements, making the gloopy
-// connection visible. Overlap would hide the junction under the text layer's white bg.
-const PILL_GAP = 5
+// Two small circles at the top-left and bottom-left of a junction pill.
+// Each circle's border curves inward at the meeting point, creating the
+// organic concave indent where adjacent capsule borders share an edge.
+function JunctionIndents() {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[5px] -top-[5px] h-2.5 w-2.5 rounded-full border border-gray-300 bg-white"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-[5px] -left-[5px] h-2.5 w-2.5 rounded-full border border-gray-300 bg-white"
+      />
+    </>
+  )
+}
 
 export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -58,78 +71,26 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
     navigate(buildEmotionsUrl(emotions.filter((e) => e !== tag)))
   }
 
-  // Whether the button participates in the gloopy chain
   const buttonConnected = emotions.length > 0
 
   return (
     <div className="flex justify-center py-2">
-      {/* ── Dark background container ──────────────────────────────────────────
-          bg-gray-900 + rounded-full provides the solid dark backdrop required
-          for the white-blob goo filter. overflow-hidden clips the dark bg to
-          the pill row shape. When no emotions are selected the dark container
-          is hidden so the button renders as a standalone dashed pill. */}
-      <div
-        ref={containerRef}
-        className={`relative inline-flex items-center${buttonConnected ? " overflow-hidden rounded-full bg-gray-900" : ""}`}
-      >
-        {/* ── Gloopy blob layer ─────────────────────────────────────────────────
-            White blobs on the dark bg-gray-900 container. blur+contrast on a
-            dark background merges adjacent white blobs into liquid goo shapes.
-            PILL_GAP between blobs keeps them close enough to merge without
-            the text-layer white backgrounds fully covering the junction.
-            Earlier blobs have higher z-index for directional rightward gloop. */}
-        {emotions.length > 0 && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 flex items-center overflow-hidden"
-            style={{ filter: "blur(8px) contrast(35)" }}
-          >
-            {emotions.map((emotion, i) => (
-              <div
-                key={emotion}
-                className="shrink-0 rounded-full bg-white px-5 py-1.5 text-sm"
-                style={{
-                  marginLeft: i === 0 ? 0 : PILL_GAP,
-                  color: "transparent",
-                  position: "relative",
-                  zIndex: emotions.length + 2 - i,
-                }}
-              >
-                {/* Invisible text mirrors text layer for accurate blob sizing */}
-                {emotion} ×
-              </div>
-            ))}
-            {/* Button blob — participates in the gloopy chain */}
-            <div
-              className="shrink-0 rounded-full bg-white px-5 py-1.5 text-sm"
-              style={{
-                marginLeft: PILL_GAP,
-                color: "transparent",
-                position: "relative",
-                zIndex: 1,
-              }}
-            >
-              + Add a feeling
-            </div>
-          </div>
-        )}
-
-        {/* ── Text + interaction layer ─────────────────────────────────────────
-            White-fill pills sit above the blob layer. Earlier pills have higher
-            z-index so the preceding pill's white bg covers the left edge of
-            the gap, creating a clean left cap on each pill. */}
+      <div ref={containerRef} className="relative inline-flex items-center">
+        {/* ── Emotion pills ────────────────────────────────────────────────────
+            Adjacent pills overlap by 1px so their borders share a single line.
+            JunctionIndents renders two small circles at the top-left and
+            bottom-left of each non-first pill, creating the concave indent
+            that makes the border curve organically inward at the junction. */}
         {emotions.map((emotion, i) => (
           <button
             key={emotion}
             type="button"
             onClick={() => handleRemoveEmotion(emotion)}
-            className="relative flex shrink-0 items-center gap-1.5 rounded-full bg-white px-5 py-1.5 text-sm font-medium text-gray-900"
-            style={{
-              marginLeft: i === 0 ? 0 : PILL_GAP,
-              zIndex: emotions.length + 2 - i,
-            }}
+            className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 py-1.5 text-sm font-medium text-gray-900 hover:border-gray-400"
+            style={{ marginLeft: i === 0 ? 0 : -1 }}
             aria-label={`Remove ${emotion}`}
           >
+            {i > 0 && <JunctionIndents />}
             {emotion}
             <span aria-hidden="true" className="opacity-40">
               ×
@@ -138,21 +99,12 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
         ))}
 
         {/* ── "Add a feeling" button + dropdown ───────────────────────────────── */}
-        <div
-          className="relative shrink-0"
-          style={{
-            marginLeft: buttonConnected ? PILL_GAP : 0,
-            zIndex: 1,
-          }}
-        >
+        <div className="relative shrink-0" style={{ marginLeft: buttonConnected ? -1 : 0 }}>
+          {buttonConnected && <JunctionIndents />}
           <button
             type="button"
             onClick={handleOpenDropdown}
-            className={
-              buttonConnected
-                ? "rounded-full bg-white px-5 py-1.5 text-sm text-gray-500 hover:text-gray-700"
-                : "rounded-full border border-dashed border-gray-400 bg-white px-5 py-1.5 text-sm text-gray-500 hover:border-gray-600 hover:text-gray-700"
-            }
+            className="rounded-full border border-dashed border-gray-400 bg-white px-5 py-1.5 text-sm text-gray-500 hover:border-gray-600 hover:text-gray-700"
           >
             + Add a feeling
           </button>
