@@ -1,7 +1,9 @@
 import type { Swipe } from "@suipe/schemas"
-import { useCallback } from "react"
+import { useCallback, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
+import { useTags } from "../../hooks/use-tags"
+import { useUpdateSwipe } from "../../hooks/use-update-swipe"
 import { getMediaUrl } from "../../lib/image-url"
 
 interface SwipeModalProps {
@@ -11,7 +13,45 @@ interface SwipeModalProps {
 
 export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
   const deleteSwipe = useDeleteSwipe()
+  const updateSwipe = useUpdateSwipe()
   const url = getMediaUrl(swipe)
+
+  const [tags, setTags] = useState(swipe.tags)
+  const [tagSearch, setTagSearch] = useState("")
+  const [tagInputOpen, setTagInputOpen] = useState(false)
+  const tagInputRef = useRef<HTMLInputElement>(null)
+  const { data: allTags } = useTags()
+
+  const availableTags = (allTags ?? []).filter((t) => !tags.includes(t))
+  const filteredTags =
+    tagSearch.length > 0
+      ? availableTags.filter((t) => t.toLowerCase().startsWith(tagSearch.toLowerCase()))
+      : availableTags
+
+  // React 19 callback ref cleanup — click-outside closes the tag dropdown
+  const tagDropdownRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return
+    const onMouseDown = (e: MouseEvent) => {
+      if (!el.contains(e.target as Node)) setTagInputOpen(false)
+    }
+    document.addEventListener("mousedown", onMouseDown)
+    return () => document.removeEventListener("mousedown", onMouseDown)
+  }, [])
+
+  function patchTags(next: string[]) {
+    setTags(next)
+    updateSwipe.mutate({ id: swipe.id, tags: next })
+  }
+
+  function handleRemoveTag(tag: string) {
+    patchTags(tags.filter((t) => t !== tag))
+  }
+
+  function handleAddTag(tag: string) {
+    patchTags([...tags, tag])
+    setTagSearch("")
+    requestAnimationFrame(() => tagInputRef.current?.focus())
+  }
 
   const handleBackdropKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -56,18 +96,81 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
               {swipe.sourceUrl}
             </a>
           )}
-          {swipe.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {swipe.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600"
+
+          {/* Editable tag pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag)}
+                  aria-label={`Remove tag ${tag}`}
+                  className="opacity-40 hover:opacity-70"
                 >
-                  {tag}
-                </span>
-              ))}
+                  ×
+                </button>
+              </span>
+            ))}
+
+            {/* Add tag dropdown */}
+            <div ref={tagDropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setTagInputOpen(true)
+                  setTagSearch("")
+                  requestAnimationFrame(() => tagInputRef.current?.focus())
+                }}
+                className="rounded-full border border-dashed border-gray-300 px-3 py-1 text-xs text-gray-400 hover:border-gray-400 hover:text-gray-600"
+              >
+                + Add tag
+              </button>
+              {tagInputOpen && (
+                <div className="absolute top-full left-0 z-20 mt-1 w-48 rounded-xl border border-gray-200 bg-white shadow-lg">
+                  <div className="p-2">
+                    <input
+                      ref={tagInputRef}
+                      type="text"
+                      value={tagSearch}
+                      onChange={(e) => setTagSearch(e.target.value)}
+                      placeholder="Search tags..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") setTagInputOpen(false)
+                      }}
+                      className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-gray-400"
+                    />
+                  </div>
+                  <ul className="max-h-40 overflow-y-auto py-1">
+                    {filteredTags.length === 0 ? (
+                      <li className="px-3 py-2 text-xs text-gray-400">No matches</li>
+                    ) : (
+                      filteredTags.map((tag) => (
+                        <li key={tag}>
+                          {/* onMouseDown fires before document mousedown (click-outside),
+                              so the tag is committed before the dropdown closes */}
+                          <button
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              handleAddTag(tag)
+                            }}
+                            className="w-full px-3 py-1.5 text-left text-xs hover:bg-gray-50"
+                          >
+                            {tag}
+                          </button>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
           <button
             type="button"
             onClick={handleDelete}

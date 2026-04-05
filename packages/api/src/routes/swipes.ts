@@ -136,6 +136,28 @@ const swipes = new Hono<{ Bindings: Bindings }>()
 
     return c.json({ ...swipe, tags }, 201)
   })
+  .patch("/:id", async (c) => {
+    const id = c.req.param("id")
+    const db = createDb(c.env.DB)
+
+    const body = await c.req.json<{ tags?: unknown }>()
+    const rawTags: unknown = body.tags
+    if (!Array.isArray(rawTags) || !rawTags.every((t): t is string => typeof t === "string")) {
+      return c.json({ error: "tags must be an array of strings" }, 400)
+    }
+
+    const normalizedTags = rawTags.map(toSentenceCase)
+
+    const [updated] = await db
+      .update(schema.swipes)
+      .set({ tags: JSON.stringify(normalizedTags) })
+      .where(eq(schema.swipes.id, id))
+      .returning()
+
+    if (!updated) return c.json({ error: "Swipe not found" }, 404)
+
+    return c.json(parseRow(updated))
+  })
   .delete("/:id", async (c) => {
     const id = c.req.param("id")
     const db = createDb(c.env.DB)
