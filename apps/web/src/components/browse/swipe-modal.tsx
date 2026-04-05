@@ -74,11 +74,11 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: stopPropagation prevents modal close when clicking content */}
       <div
-        className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-6"
+        className="flex h-[95vh] w-full max-w-3xl flex-col rounded-xl bg-white p-6"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <div className="mb-4 space-y-3">
+        <div className="mb-4 shrink-0 space-y-3">
           {swipe.description && <p className="text-gray-700">{swipe.description}</p>}
 
           {/* Editable tag pills */}
@@ -156,14 +156,20 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           </div>
         </div>
 
-        {swipe.mediaType === "video" ? (
-          // biome-ignore lint/a11y/useMediaCaption: user-uploaded videos don't have caption tracks
-          <video src={url} controls className="w-full rounded-lg" />
-        ) : (
-          <img src={url} alt={swipe.description ?? ""} className="w-full rounded-lg" />
-        )}
+        <div className="min-h-0 flex-1">
+          {swipe.mediaType === "video" ? (
+            // biome-ignore lint/a11y/useMediaCaption: user-uploaded videos don't have caption tracks
+            <video src={url} controls className="h-full w-full rounded-lg object-contain" />
+          ) : (
+            <img
+              src={url}
+              alt={swipe.description ?? ""}
+              className="h-full w-full rounded-lg object-contain"
+            />
+          )}
+        </div>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 shrink-0 space-y-3">
           {swipe.sourceUrl && (
             <a
               href={swipe.sourceUrl}

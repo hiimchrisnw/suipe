@@ -74,3 +74,7 @@ The following are planned but intentionally not installed or stubbed. Add them w
 | **drizzle-orm** | D1 ORM | Add to `packages/api` once schema is defined and D1 ID is set |
 | **React Router / TanStack Router** | Client-side routing | Add to `apps/web` once routes are defined |
 | **@tanstack/react-query-devtools** | Dev tooling | Add to `apps/web` devDependencies when needed |
+
+## Git
+
+Do not run git add, commit, or push unless explicitly instructed to do so.
