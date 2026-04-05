@@ -78,24 +78,8 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        {swipe.mediaType === "video" ? (
-          // biome-ignore lint/a11y/useMediaCaption: user-uploaded videos don't have caption tracks
-          <video src={url} controls className="w-full rounded-lg" />
-        ) : (
-          <img src={url} alt={swipe.description ?? ""} className="w-full rounded-lg" />
-        )}
-        <div className="mt-4 space-y-3">
+        <div className="mb-4 space-y-3">
           {swipe.description && <p className="text-gray-700">{swipe.description}</p>}
-          {swipe.sourceUrl && (
-            <a
-              href={swipe.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-sm text-blue-600 hover:underline"
-            >
-              {swipe.sourceUrl}
-            </a>
-          )}
 
           {/* Editable tag pills */}
           <div className="flex flex-wrap items-center gap-2">
@@ -170,7 +154,26 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
               )}
             </div>
           </div>
+        </div>
 
+        {swipe.mediaType === "video" ? (
+          // biome-ignore lint/a11y/useMediaCaption: user-uploaded videos don't have caption tracks
+          <video src={url} controls className="w-full rounded-lg" />
+        ) : (
+          <img src={url} alt={swipe.description ?? ""} className="w-full rounded-lg" />
+        )}
+
+        <div className="mt-4 space-y-3">
+          {swipe.sourceUrl && (
+            <a
+              href={swipe.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-sm text-blue-600 hover:underline"
+            >
+              {swipe.sourceUrl}
+            </a>
+          )}
           <button
             type="button"
             onClick={handleDelete}
