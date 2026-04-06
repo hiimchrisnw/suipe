@@ -58,15 +58,12 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
       className="flex justify-center pt-2 pb-6"
       style={{ "--pill-bg": "white", "--pill-border": "#d1d5db" } as React.CSSProperties}
     >
-      <div ref={containerRef} className="relative inline-flex items-center">
-        {emotions.map((emotion, i) => (
+      <div
+        ref={containerRef}
+        className="relative inline-flex flex-wrap items-center justify-center gap-y-2"
+      >
+        {emotions.map((emotion) => (
           <div key={emotion} className="flex items-center">
-            {i > 0 && (
-              <div
-                className="z-10 border-y border-[var(--pill-border)] bg-[var(--pill-bg)]"
-                style={{ width: 5, height: 8, marginLeft: -1.5, marginRight: -1.5 }}
-              />
-            )}
             <button
               type="button"
               onClick={() => handleRemoveEmotion(emotion)}
@@ -78,16 +75,14 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
                 ×
               </span>
             </button>
-          </div>
-        ))}
-
-        <div className="flex shrink-0 items-center">
-          {emotions.length > 0 && (
             <div
               className="z-10 border-y border-[var(--pill-border)] bg-[var(--pill-bg)]"
               style={{ width: 5, height: 8, marginLeft: -1.5, marginRight: -1.5 }}
             />
-          )}
+          </div>
+        ))}
+
+        <div className="flex shrink-0 items-center">
           <button
             type="button"
             onClick={handleOpenDropdown}

@@ -45,15 +45,17 @@ export function TagInput({ tags, onChange, isPending }: TagInputProps) {
 
   return (
     <div ref={containerRef}>
-      <span className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700">
+      <span className="mb-1 flex items-center gap-2 text-base font-normal text-gray-700">
         Tags
-        {isPending && <span className="text-xs font-normal text-gray-400">Suggesting tags...</span>}
+        {isPending && (
+          <span className="text-base font-normal text-gray-400">Suggesting tags...</span>
+        )}
       </span>
       <div className="flex flex-wrap items-center gap-2">
         {tags.map((tag) => (
           <span
             key={tag}
-            className="flex items-center gap-1 rounded-full bg-gray-100 px-4 py-1.5 text-sm text-gray-600"
+            className="flex items-center gap-1 rounded-full bg-gray-100 px-4 py-1.5 text-base font-normal text-gray-600"
           >
             {tag}
             <button
@@ -75,7 +77,7 @@ export function TagInput({ tags, onChange, isPending }: TagInputProps) {
               setSearch("")
               requestAnimationFrame(() => inputRef.current?.focus())
             }}
-            className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-dashed border-gray-300 px-4 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600"
+            className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-dashed border-gray-300 px-4 text-base font-normal text-gray-400 hover:border-gray-400 hover:text-gray-600"
           >
             <span className="relative -top-0.5 text-2xl font-extralight leading-[0]">+</span>
             <span>Add feeling</span>
@@ -97,12 +99,12 @@ export function TagInput({ tags, onChange, isPending }: TagInputProps) {
                       if (value && !tags.includes(value)) handleAddTag(value)
                     }
                   }}
-                  className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-gray-400"
+                  className="w-full rounded-lg border border-gray-200 px-2 py-1 text-base font-normal outline-none focus:border-gray-400"
                 />
               </div>
               <ul className="max-h-40 overflow-y-auto py-1">
                 {filteredTags.length === 0 ? (
-                  <li className="px-3 py-2 text-xs text-gray-400">
+                  <li className="px-3 py-2 text-base font-normal text-gray-400">
                     Press Enter to add "{toTitleCase(search.trim())}"
                   </li>
                 ) : (
@@ -114,7 +116,7 @@ export function TagInput({ tags, onChange, isPending }: TagInputProps) {
                           e.preventDefault()
                           handleAddTag(tag)
                         }}
-                        className="w-full px-3 py-1.5 text-left text-xs hover:bg-gray-50"
+                        className="w-full px-3 py-1.5 text-left text-base font-normal hover:bg-gray-50"
                       >
                         {tag}
                       </button>

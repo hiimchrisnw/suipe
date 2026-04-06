@@ -56,7 +56,7 @@ export function DropZone({ onFileSelect, preview, isVideo }: DropZoneProps) {
           <img src={preview} alt="Preview" className="max-h-80 rounded-lg" />
         )
       ) : (
-        <p className="text-sm text-gray-400">Drop a file here, or click to select</p>
+        <p className="text-base font-normal text-gray-400">Drop a file here, or click to select</p>
       )}
     </button>
   )

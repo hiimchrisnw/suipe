@@ -34,7 +34,7 @@ export function BrowsePage() {
   )
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-3 p-4 md:space-y-4 md:p-6">
       <RecipeBuilder emotions={emotions} />
       {isLoading ? (
         <p className="py-20 text-center text-gray-400">Loading...</p>

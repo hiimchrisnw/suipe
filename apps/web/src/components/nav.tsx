@@ -9,7 +9,7 @@ export function Nav() {
   }
 
   return (
-    <nav className="relative flex items-center border-b border-gray-200 px-6 py-4">
+    <nav className="relative flex items-center border-b border-gray-200 px-4 py-3 md:px-6 md:py-4">
       {/* Browse — left */}
       <a
         href="/"
