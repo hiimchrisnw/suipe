@@ -7,7 +7,7 @@ export function App() {
   const pathname = usePathname()
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-white font-light text-gray-900">
       <Nav />
       {pathname === "/upload" ? <UploadPage /> : <BrowsePage />}
     </div>

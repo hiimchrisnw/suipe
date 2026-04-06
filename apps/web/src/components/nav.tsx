@@ -14,7 +14,7 @@ export function Nav() {
       <a
         href="/"
         onClick={(e) => handleClick(e, "/")}
-        className={`text-sm ${pathname === "/" ? "font-medium text-gray-900" : "text-gray-500 hover:text-gray-900"}`}
+        className={`text-base ${pathname === "/" ? "font-normal text-gray-900" : "font-normal text-gray-500 hover:text-gray-900"}`}
       >
         Browse
       </a>
@@ -32,8 +32,10 @@ export function Nav() {
       <a
         href="/upload"
         onClick={(e) => handleClick(e, "/upload")}
-        className={`ml-auto text-sm ${
-          pathname === "/upload" ? "font-medium text-gray-900" : "text-gray-500 hover:text-gray-900"
+        className={`ml-auto text-base ${
+          pathname === "/upload"
+            ? "font-normal text-gray-900"
+            : "font-normal text-gray-500 hover:text-gray-900"
         }`}
       >
         Upload

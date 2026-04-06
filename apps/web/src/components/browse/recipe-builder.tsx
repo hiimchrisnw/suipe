@@ -70,7 +70,7 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
             <button
               type="button"
               onClick={() => handleRemoveEmotion(emotion)}
-              className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] px-4 py-1.5 text-sm font-medium text-gray-900 hover:border-gray-400"
+              className="relative flex h-[34px] shrink-0 items-center gap-1.5 rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] px-4 text-base font-normal text-gray-900 hover:border-gray-400"
               aria-label={`Remove ${emotion}`}
             >
               {emotion}
@@ -91,10 +91,10 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
           <button
             type="button"
             onClick={handleOpenDropdown}
-            className={`flex items-center justify-center rounded-full border border-dashed border-[var(--pill-border)] bg-[var(--pill-bg)] text-gray-500 hover:border-gray-600 hover:text-gray-700 ${emotions.length > 0 ? "h-[34px] w-[34px]" : "h-[34px] gap-1 px-4 text-sm"}`}
+            className={`flex items-center justify-center rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] text-gray-500 hover:border-gray-600 hover:text-gray-700 ${emotions.length > 0 ? "h-[34px] w-[34px]" : "h-[34px] gap-1 border-dashed px-4 text-base font-normal"}`}
           >
-            <span className="relative -top-0.5 text-2xl font-extralight leading-[0]">+</span>
-            {emotions.length === 0 && <span>Pick a feeling</span>}
+            <span className="text-2xl font-extralight leading-[0]">+</span>
+            {emotions.length === 0 && <span>Connect a feeling</span>}
           </button>
 
           {isOpen && (
@@ -109,12 +109,12 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
                   onKeyDown={(e) => {
                     if (e.key === "Escape") setIsOpen(false)
                   }}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-gray-400"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-base font-normal outline-none focus:border-gray-400"
                 />
               </div>
               <ul className="max-h-56 overflow-y-auto py-1">
                 {filteredTags.length === 0 ? (
-                  <li className="px-3 py-2 text-sm text-gray-400">No matches</li>
+                  <li className="px-3 py-2 text-base font-normal text-gray-400">No matches</li>
                 ) : (
                   filteredTags.map((tag) => (
                     <li key={tag}>
@@ -124,7 +124,7 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
                           e.preventDefault()
                           handleSelectTag(tag)
                         }}
-                        className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50"
+                        className="w-full px-3 py-1.5 text-left text-base font-normal hover:bg-gray-50"
                       >
                         {tag}
                       </button>
