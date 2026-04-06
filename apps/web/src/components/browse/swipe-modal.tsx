@@ -7,6 +7,10 @@ import { useTags } from "../../hooks/use-tags"
 import { useUpdateSwipe } from "../../hooks/use-update-swipe"
 import { getMediaUrl } from "../../lib/image-url"
 
+function toTitleCase(s: string) {
+  return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 interface SwipeModalProps {
   swipe: Swipe
   onClose: () => void
@@ -125,13 +129,20 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                       placeholder="Search tags..."
                       onKeyDown={(e) => {
                         if (e.key === "Escape") setTagInputOpen(false)
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          const value = toTitleCase(tagSearch.trim())
+                          if (value && !tags.includes(value)) handleAddTag(value)
+                        }
                       }}
                       className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-gray-400"
                     />
                   </div>
                   <ul className="max-h-40 overflow-y-auto py-1">
                     {filteredTags.length === 0 ? (
-                      <li className="px-3 py-2 text-xs text-gray-400">No matches</li>
+                      <li className="px-3 py-2 text-xs text-gray-400">
+                        Press Enter to add "{toTitleCase(tagSearch.trim())}"
+                      </li>
                     ) : (
                       filteredTags.map((tag) => (
                         <li key={tag}>
