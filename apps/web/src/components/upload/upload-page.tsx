@@ -14,7 +14,7 @@ export function UploadPage() {
   const [fetchInput, setFetchInput] = useState("")
   const [sourceUrl, setSourceUrl] = useState("")
   const [description, setDescription] = useState("")
-  const [tagsInput, setTagsInput] = useState("")
+  const [tags, setTags] = useState<string[]>([])
   const tagsEditedRef = useRef(false)
   const upload = useUpload()
   const suggestTags = useSuggestTags()
@@ -29,9 +29,9 @@ export function UploadPage() {
     setFetchedMedia(null)
     tagsEditedRef.current = false
     suggestTags.mutate(selected, {
-      onSuccess: (tags) => {
-        if (!tagsEditedRef.current && tags.length > 0) {
-          setTagsInput(tags.join(", "))
+      onSuccess: (suggested) => {
+        if (!tagsEditedRef.current && suggested.length > 0) {
+          setTags(suggested)
         }
       },
     })
@@ -59,14 +59,6 @@ export function UploadPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-
-    const tags = tagsInput
-      .split(",")
-      .map((t) => {
-        const s = t.trim().toLowerCase()
-        return s.charAt(0).toUpperCase() + s.slice(1)
-      })
-      .filter(Boolean)
 
     const tagsList = tags.length > 0 ? tags : undefined
 
@@ -138,10 +130,10 @@ export function UploadPage() {
         </div>
 
         <TagInput
-          value={tagsInput}
+          tags={tags}
           onChange={(v) => {
             tagsEditedRef.current = true
-            setTagsInput(v)
+            setTags(v)
           }}
           isPending={suggestTags.isPending}
         />

@@ -1,123 +1,130 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { useTags } from "../../hooks/use-tags"
 
+function toTitleCase(s: string) {
+  return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 interface TagInputProps {
-  value: string
-  onChange: (value: string) => void
+  tags: string[]
+  onChange: (tags: string[]) => void
   isPending: boolean
 }
 
-export function TagInput({ value, onChange, isPending }: TagInputProps) {
+export function TagInput({ tags, onChange, isPending }: TagInputProps) {
   const { data: allTags } = useTags()
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [highlightIndex, setHighlightIndex] = useState(-1)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const prevFragmentRef = useRef("")
+  const [search, setSearch] = useState("")
+  const [isOpen, setIsOpen] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const currentTagFragment = getCurrentFragment(value)
-  const existingTags = new Set(
-    value
-      .split(",")
-      .map((t) => t.trim().toLowerCase())
-      .filter(Boolean),
-  )
+  const availableTags = (allTags ?? []).filter((t) => !tags.includes(t))
+  const filteredTags =
+    search.length > 0
+      ? availableTags.filter((t) => t.toLowerCase().startsWith(search.toLowerCase()))
+      : availableTags
 
-  const suggestions =
-    currentTagFragment.length > 0 && allTags
-      ? allTags.filter(
-          (t) =>
-            t.toLowerCase().startsWith(currentTagFragment) && !existingTags.has(t.toLowerCase()),
-        )
-      : []
-
-  // Reset highlight when the typed fragment changes — computed during render, no effect needed
-  if (prevFragmentRef.current !== currentTagFragment) {
-    prevFragmentRef.current = currentTagFragment
-    if (highlightIndex !== -1) setHighlightIndex(-1)
-  }
-
-  // legitimate-useeffect: subscribing to document mousedown for click-outside dismissal
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false)
-      }
+  // React 19 callback ref cleanup — click-outside closes the dropdown
+  const containerRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return
+    const onMouseDown = (e: MouseEvent) => {
+      if (!el.contains(e.target as Node)) setIsOpen(false)
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", onMouseDown)
+    return () => document.removeEventListener("mousedown", onMouseDown)
   }, [])
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (!showSuggestions || suggestions.length === 0) return
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault()
-      setHighlightIndex((i) => (i + 1) % suggestions.length)
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault()
-      setHighlightIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1))
-    } else if (e.key === "Enter" && highlightIndex >= 0) {
-      e.preventDefault()
-      const selected = suggestions[highlightIndex]
-      if (selected) acceptSuggestion(selected)
-    } else if (e.key === "Escape") {
-      setShowSuggestions(false)
-    }
+  function handleAddTag(tag: string) {
+    onChange([...tags, tag])
+    setSearch("")
+    requestAnimationFrame(() => inputRef.current?.focus())
   }
 
-  function acceptSuggestion(tag: string) {
-    const parts = value.split(",")
-    parts[parts.length - 1] = ` ${tag}`
-    onChange(`${parts.join(",").replace(/^[\s,]+/, "")}, `)
-    setShowSuggestions(false)
+  function handleRemoveTag(tag: string) {
+    onChange(tags.filter((t) => t !== tag))
   }
 
   return (
-    <div ref={containerRef} className="relative">
-      <label
-        htmlFor="tags"
-        className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700"
-      >
+    <div ref={containerRef}>
+      <span className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700">
         Tags
         {isPending && <span className="text-xs font-normal text-gray-400">Suggesting tags...</span>}
-      </label>
-      <input
-        id="tags"
-        type="text"
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value)
-          setShowSuggestions(true)
-        }}
-        onFocus={() => setShowSuggestions(true)}
-        onKeyDown={handleKeyDown}
-        placeholder="typography, color, layout"
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none"
-        autoComplete="off"
-      />
-      {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
-          {suggestions.map((tag, i) => (
-            <li key={tag}>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => acceptSuggestion(tag)}
-                className={`w-full px-3 py-1.5 text-left text-sm ${
-                  i === highlightIndex ? "bg-gray-100 text-gray-900" : "text-gray-600"
-                }`}
-              >
-                {tag}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="flex items-center gap-1 rounded-full bg-gray-100 px-4 py-1.5 text-sm text-gray-600"
+          >
+            {tag}
+            <button
+              type="button"
+              onClick={() => handleRemoveTag(tag)}
+              aria-label={`Remove tag ${tag}`}
+              className="opacity-40 hover:opacity-70"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(true)
+              setSearch("")
+              requestAnimationFrame(() => inputRef.current?.focus())
+            }}
+            className="rounded-full border border-dashed border-gray-300 px-4 py-1.5 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600"
+          >
+            + Add feeling
+          </button>
+          {isOpen && (
+            <div className="absolute top-full left-0 z-20 mt-1 w-48 rounded-xl border border-gray-200 bg-white shadow-lg">
+              <div className="p-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search tags..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setIsOpen(false)
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      const value = toTitleCase(search.trim())
+                      if (value && !tags.includes(value)) handleAddTag(value)
+                    }
+                  }}
+                  className="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:border-gray-400"
+                />
+              </div>
+              <ul className="max-h-40 overflow-y-auto py-1">
+                {filteredTags.length === 0 ? (
+                  <li className="px-3 py-2 text-xs text-gray-400">
+                    Press Enter to add "{toTitleCase(search.trim())}"
+                  </li>
+                ) : (
+                  filteredTags.map((tag) => (
+                    <li key={tag}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          handleAddTag(tag)
+                        }}
+                        className="w-full px-3 py-1.5 text-left text-xs hover:bg-gray-50"
+                      >
+                        {tag}
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
-}
-
-function getCurrentFragment(value: string): string {
-  const parts = value.split(",")
-  return (parts[parts.length - 1] ?? "").trim().toLowerCase()
 }
