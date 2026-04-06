@@ -54,32 +54,47 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
   }
 
   return (
-    <div className="flex justify-center py-2">
+    <div
+      className="flex justify-center py-2"
+      style={{ "--pill-bg": "white", "--pill-border": "#d1d5db" } as React.CSSProperties}
+    >
       <div ref={containerRef} className="relative inline-flex items-center">
         {emotions.map((emotion, i) => (
-          <button
-            key={emotion}
-            type="button"
-            onClick={() => handleRemoveEmotion(emotion)}
-            className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-900 hover:border-gray-400"
-            style={{ marginLeft: i === 0 ? 0 : -1 }}
-            aria-label={`Remove ${emotion}`}
-          >
-            {emotion}
-            <span aria-hidden="true" className="opacity-40">
-              ×
-            </span>
-          </button>
+          <div key={emotion} className="flex items-center">
+            {i > 0 && (
+              <div
+                className="z-10 border-y border-[var(--pill-border)] bg-[var(--pill-bg)]"
+                style={{ width: 5, height: 8, marginLeft: -1.5, marginRight: -1.5 }}
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => handleRemoveEmotion(emotion)}
+              className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] px-4 py-1.5 text-sm font-medium text-gray-900 hover:border-gray-400"
+              aria-label={`Remove ${emotion}`}
+            >
+              {emotion}
+              <span aria-hidden="true" className="opacity-40">
+                ×
+              </span>
+            </button>
+          </div>
         ))}
 
-        <div className="relative shrink-0" style={{ marginLeft: emotions.length > 0 ? -1 : 0 }}>
+        <div className="flex shrink-0 items-center">
+          {emotions.length > 0 && (
+            <div
+              className="z-10 border-y border-[var(--pill-border)] bg-[var(--pill-bg)]"
+              style={{ width: 5, height: 8, marginLeft: -1.5, marginRight: -1.5 }}
+            />
+          )}
           <button
             type="button"
             onClick={handleOpenDropdown}
-            className="rounded-full border border-dashed border-gray-400 bg-white px-4 py-1.5 text-sm text-gray-500 hover:border-gray-600 hover:text-gray-700"
+            className={`flex items-center justify-center rounded-full border border-dashed border-[var(--pill-border)] bg-[var(--pill-bg)] text-gray-500 hover:border-gray-600 hover:text-gray-700 ${emotions.length > 0 ? "h-[34px] w-[34px]" : "h-[34px] gap-1 px-4 text-sm"}`}
           >
-            <span className="relative -top-px">+</span>{" "}
-            {emotions.length === 0 ? "Pick a feeling" : "Add a feeling"}
+            <span className="relative -top-0.5 text-2xl font-extralight leading-[0]">+</span>
+            {emotions.length === 0 && <span>Pick a feeling</span>}
           </button>
 
           {isOpen && (

@@ -122,9 +122,10 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                   setTagSearch("")
                   requestAnimationFrame(() => tagInputRef.current?.focus())
                 }}
-                className="rounded-full border border-dashed border-gray-300 px-4 py-1.5 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600"
+                className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-dashed border-gray-300 px-4 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600"
               >
-                + Add feeling
+                <span className="relative -top-0.5 text-2xl font-extralight leading-[0]">+</span>
+                <span>Add feeling</span>
               </button>
               {tagInputOpen && (
                 <div className="absolute top-full left-0 z-20 mt-1 w-48 rounded-xl border border-gray-200 bg-white shadow-lg">
