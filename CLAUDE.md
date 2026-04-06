@@ -77,10 +77,8 @@ The following are planned but intentionally not installed or stubbed. Add them w
 
 ## Development Workflow
 
-Development runs against the live deployed build — local dev servers are not in use. Do not start or reference local servers. Verify changes by pushing to `main` and checking the live URLs:
-
-- **Web:** https://suipe.pages.dev
-- **API:** https://suipe-api.cedwards33.workers.dev
+- **API:** `pnpm --filter @suipe/api dev -- --local` → `http://localhost:8787`
+- **Web:** `pnpm --filter @suipe/web dev` → `http://localhost:5173`
 
 ## Git
 
