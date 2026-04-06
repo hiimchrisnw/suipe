@@ -55,7 +55,7 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
 
   return (
     <div
-      className="flex justify-center py-2"
+      className="flex justify-center pt-2 pb-6"
       style={{ "--pill-bg": "white", "--pill-border": "#d1d5db" } as React.CSSProperties}
     >
       <div ref={containerRef} className="relative inline-flex items-center">
