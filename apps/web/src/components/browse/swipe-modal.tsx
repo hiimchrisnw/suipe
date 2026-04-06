@@ -1,5 +1,5 @@
 import type { Swipe } from "@suipe/schemas"
-import { Trash2 } from "lucide-react"
+import { Trash2, X } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
@@ -83,11 +83,19 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <div className="mb-4 shrink-0 space-y-3">
+        <div className="relative mb-4 shrink-0 space-y-3">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-0 right-0 flex items-center justify-center rounded-lg border border-gray-200 p-1.5 text-gray-600 hover:border-gray-300 hover:text-gray-900 md:hidden"
+          >
+            <X size={14} />
+          </button>
           {swipe.description && <p className="text-gray-700">{swipe.description}</p>}
 
           {/* Editable tag pills */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 pr-10 md:pr-0">
             {tags.map((tag) => (
               <span
                 key={tag}
