@@ -78,7 +78,8 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
             onClick={handleOpenDropdown}
             className="rounded-full border border-dashed border-gray-400 bg-white px-4 py-1.5 text-sm text-gray-500 hover:border-gray-600 hover:text-gray-700"
           >
-            + Add a feeling
+            <span className="relative -top-px">+</span>{" "}
+            {emotions.length === 0 ? "Pick a feeling" : "Add a feeling"}
           </button>
 
           {isOpen && (
