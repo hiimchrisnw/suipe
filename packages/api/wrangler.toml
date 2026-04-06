@@ -5,6 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [dev]
 local_protocol = "http"
+local = true
 
 [[d1_databases]]
 binding = "DB"
