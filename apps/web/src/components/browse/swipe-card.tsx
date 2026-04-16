@@ -11,8 +11,8 @@ interface SwipeCardProps {
 // Module-level constant — referentially stable, never re-triggers subscription
 const OBSERVER_OPTIONS: IntersectionObserverInit = { rootMargin: "200px", threshold: 0 }
 
-// Constant-pixel hover lift expressed as scale. 8px total (4 per side).
-const HOVER_DELTA_PX = 8
+// Constant-pixel hover lift expressed as scale. 4px total (2 per side).
+const HOVER_DELTA_PX = 4
 
 export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
   const url = getMediaUrl(swipe)
@@ -49,7 +49,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
           loop
           playsInline
           style={{ objectPosition }}
-          className="h-full w-full rounded-lg object-cover ring-1 ring-black/[0.08] ring-inset"
+          className="h-full w-full rounded-lg object-cover ring-1 ring-gray-200"
         />
       ) : (
         <img
@@ -57,7 +57,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
           alt={swipe.description ?? ""}
           loading="lazy"
           style={{ objectPosition }}
-          className="h-full w-full rounded-lg object-cover ring-1 ring-black/[0.08] ring-inset"
+          className="h-full w-full rounded-lg object-cover ring-1 ring-gray-200"
         />
       )}
     </button>
