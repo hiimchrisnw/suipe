@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 
-const PRESET_TAGS = [
+export const PRESET_TAGS = [
   "Bold",
   "Calm",
   "Caring",

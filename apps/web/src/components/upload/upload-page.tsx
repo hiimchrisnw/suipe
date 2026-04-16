@@ -155,108 +155,112 @@ export function UploadPage() {
     : "Where is this from? (optional)"
 
   return (
-    <div className="mx-auto max-w-xl space-y-3 p-4 md:space-y-6 md:p-6">
+    <div className="mx-auto max-w-xl space-y-3 p-4 md:max-w-4xl md:space-y-6 md:p-6">
       <h1 className="text-base font-normal">Upload a swipe</h1>
-      <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
-        {designSpells ? (
-          <div className="flex min-h-48 w-full items-center justify-center rounded-xl border-2 border-dashed border-gray-300">
-            {preview ? (
-              isVideo ? (
-                <video src={preview} muted autoPlay loop className="max-h-80 rounded-lg" />
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-10">
+        <div className="space-y-3 md:space-y-4">
+          {designSpells ? (
+            <div className="flex min-h-48 w-full items-center justify-center rounded-xl border-2 border-dashed border-gray-300">
+              {preview ? (
+                isVideo ? (
+                  <video src={preview} muted autoPlay loop className="max-h-80 rounded-lg" />
+                ) : (
+                  <img src={preview} alt="Preview" className="max-h-80 rounded-lg" />
+                )
               ) : (
-                <img src={preview} alt="Preview" className="max-h-80 rounded-lg" />
-              )
-            ) : (
-              <p className="text-base font-normal text-gray-400">
-                {fetchUrl.isPending ? "Fetching..." : "Paste a Design Spells URL to preview"}
-              </p>
+                <p className="text-base font-normal text-gray-400">
+                  {fetchUrl.isPending ? "Fetching..." : "Paste a Design Spells URL to preview"}
+                </p>
+              )}
+            </div>
+          ) : (
+            <DropZone onFileSelect={handleFileSelect} preview={preview} isVideo={isVideo} />
+          )}
+
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            <label className="flex items-center gap-2 text-base font-normal text-gray-700">
+              <input
+                type="checkbox"
+                checked={fromMobbin}
+                onChange={(e) => handleMobbinChange(e.target.checked)}
+                className="h-4 w-4"
+              />
+              From Mobbin
+            </label>
+            <label className="flex items-center gap-2 text-base font-normal text-gray-700">
+              <input
+                type="checkbox"
+                checked={designSpells}
+                onChange={(e) => handleDesignSpellsChange(e.target.checked)}
+                className="h-4 w-4"
+              />
+              Design Spells
+            </label>
+          </div>
+
+          <div>
+            <label
+              htmlFor="source-url"
+              className="mb-1 flex items-center gap-2 text-base font-normal text-gray-700"
+            >
+              {urlLabel}
+              {fetchUrl.isPending && (
+                <span className="text-base font-normal text-gray-400">Fetching...</span>
+              )}
+            </label>
+            <input
+              id="source-url"
+              type="url"
+              value={sourceUrl}
+              onChange={(e) => setSourceUrl(e.target.value)}
+              onBlur={handleSourceUrlFetch}
+              onKeyDown={handleSourceUrlKeyDown}
+              placeholder={urlPlaceholder}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base font-normal focus:border-gray-900 focus:outline-none"
+            />
+            {fetchUrl.isError && !file && (
+              <p className="mt-1 text-base text-red-600">{fetchUrl.error.message}</p>
             )}
           </div>
-        ) : (
-          <DropZone onFileSelect={handleFileSelect} preview={preview} isVideo={isVideo} />
-        )}
 
-        <div className="flex flex-wrap gap-x-4 gap-y-2">
-          <label className="flex items-center gap-2 text-base font-normal text-gray-700">
-            <input
-              type="checkbox"
-              checked={fromMobbin}
-              onChange={(e) => handleMobbinChange(e.target.checked)}
-              className="h-4 w-4"
+          <div>
+            <label htmlFor="description" className="mb-1 block text-base font-normal text-gray-700">
+              Description
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="What caught your eye?"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base font-normal focus:border-gray-900 focus:outline-none"
             />
-            From Mobbin
-          </label>
-          <label className="flex items-center gap-2 text-base font-normal text-gray-700">
-            <input
-              type="checkbox"
-              checked={designSpells}
-              onChange={(e) => handleDesignSpellsChange(e.target.checked)}
-              className="h-4 w-4"
-            />
-            Design Spells
-          </label>
+          </div>
         </div>
 
-        <div>
-          <label
-            htmlFor="source-url"
-            className="mb-1 flex items-center gap-2 text-base font-normal text-gray-700"
-          >
-            {urlLabel}
-            {fetchUrl.isPending && (
-              <span className="text-base font-normal text-gray-400">Fetching...</span>
-            )}
-          </label>
-          <input
-            id="source-url"
-            type="url"
-            value={sourceUrl}
-            onChange={(e) => setSourceUrl(e.target.value)}
-            onBlur={handleSourceUrlFetch}
-            onKeyDown={handleSourceUrlKeyDown}
-            placeholder={urlPlaceholder}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base font-normal focus:border-gray-900 focus:outline-none"
+        <div className="space-y-3 md:space-y-4">
+          <TagInput
+            tags={tags}
+            onChange={(v) => {
+              tagsEditedRef.current = true
+              setTags(v)
+            }}
+            isPending={suggestTags.isPending}
           />
-          {fetchUrl.isError && !file && (
-            <p className="mt-1 text-base text-red-600">{fetchUrl.error.message}</p>
+
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="w-full rounded-lg bg-gray-900 px-4 py-2 text-base font-normal text-white disabled:opacity-50"
+          >
+            {upload.isPending ? "Uploading..." : "Upload"}
+          </button>
+
+          {cropError && <p className="text-base font-normal text-red-600">{cropError}</p>}
+          {upload.isError && (
+            <p className="text-base font-normal text-red-600">Upload failed. Please try again.</p>
           )}
         </div>
-
-        <div>
-          <label htmlFor="description" className="mb-1 block text-base font-normal text-gray-700">
-            Description
-          </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            placeholder="What caught your eye?"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base font-normal focus:border-gray-900 focus:outline-none"
-          />
-        </div>
-
-        <TagInput
-          tags={tags}
-          onChange={(v) => {
-            tagsEditedRef.current = true
-            setTags(v)
-          }}
-          isPending={suggestTags.isPending}
-        />
-
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="w-full rounded-lg bg-gray-900 px-4 py-2 text-base font-normal text-white disabled:opacity-50"
-        >
-          {upload.isPending ? "Uploading..." : "Upload"}
-        </button>
-
-        {cropError && <p className="text-base font-normal text-red-600">{cropError}</p>}
-        {upload.isError && (
-          <p className="text-base font-normal text-red-600">Upload failed. Please try again.</p>
-        )}
       </form>
     </div>
   )
