@@ -74,21 +74,78 @@ const swipes = new Hono<{ Bindings: Bindings }>()
   .post("/upload", async (c) => {
     const contentType = c.req.header("content-type") ?? ""
     const db = createDb(c.env.DB)
+    console.log("[/swipes/upload] content-type:", contentType)
 
     if (contentType.includes("application/json")) {
       const body = await c.req.json<{
         imageUrl?: string
+        mediaUrl?: string
         mediaType?: string
         sourceUrl?: string
         description?: string
         tags?: string[]
       }>()
-
-      if (!body.imageUrl) {
-        return c.json({ error: "Missing imageUrl" }, 400)
-      }
+      console.log("[/swipes/upload] json body:", JSON.stringify(body))
 
       const normalizedTags = (body.tags ?? []).map(toSentenceCase)
+
+      if (body.mediaUrl) {
+        let res: Response
+        try {
+          res = await fetch(body.mediaUrl, {
+            headers: { "User-Agent": "Mozilla/5.0 (compatible; Suipe/1.0)" },
+          })
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err)
+          console.log("[/swipes/upload] mediaUrl fetch threw:", message)
+          return c.json({ error: `Failed to fetch media URL: ${message}` }, 422)
+        }
+        if (!res.ok || !res.body) {
+          console.log(
+            "[/swipes/upload] mediaUrl fetch non-ok:",
+            res.status,
+            "content-type:",
+            res.headers.get("content-type"),
+          )
+          return c.json({ error: `Failed to fetch media URL: ${res.status}` }, 422)
+        }
+
+        const fetchedContentType =
+          res.headers.get("content-type")?.split(";")[0]?.trim() ?? "application/octet-stream"
+        const pathname = (() => {
+          try {
+            return new URL(body.mediaUrl).pathname
+          } catch {
+            return ""
+          }
+        })()
+        const urlExt = pathname.split(".").pop()?.toLowerCase()
+        const mimeExt = fetchedContentType.split("/")[1]?.toLowerCase()
+        const ext = urlExt && urlExt.length <= 5 ? urlExt : (mimeExt ?? "bin")
+        const key = `${crypto.randomUUID()}.${ext}`
+
+        await c.env.ASSETS.put(key, res.body, {
+          httpMetadata: { contentType: fetchedContentType },
+        })
+
+        const [swipe] = await db
+          .insert(schema.swipes)
+          .values({
+            imageUrl: key,
+            mediaType: deriveMediaType(fetchedContentType),
+            sourceType: "upload",
+            sourceUrl: body.sourceUrl ?? null,
+            description: body.description ?? null,
+            tags: JSON.stringify(normalizedTags),
+          })
+          .returning()
+
+        return c.json({ ...swipe, tags: normalizedTags }, 201)
+      }
+
+      if (!body.imageUrl) {
+        return c.json({ error: "Missing imageUrl or mediaUrl" }, 400)
+      }
 
       const [swipe] = await db
         .insert(schema.swipes)

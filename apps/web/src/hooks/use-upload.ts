@@ -17,10 +17,21 @@ interface UrlUploadParams {
   tags?: string[] | undefined
 }
 
-export type UploadParams = FileUploadParams | UrlUploadParams
+interface MediaFetchUploadParams {
+  mediaUrl: string
+  sourceUrl?: string | undefined
+  description?: string | undefined
+  tags?: string[] | undefined
+}
+
+export type UploadParams = FileUploadParams | UrlUploadParams | MediaFetchUploadParams
 
 function isFileUpload(params: UploadParams): params is FileUploadParams {
   return "file" in params
+}
+
+function isMediaFetchUpload(params: UploadParams): params is MediaFetchUploadParams {
+  return "mediaUrl" in params
 }
 
 export function useUpload() {
@@ -41,6 +52,17 @@ export function useUpload() {
         res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
           method: "POST",
           body: formData,
+        })
+      } else if (isMediaFetchUpload(params)) {
+        res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mediaUrl: params.mediaUrl,
+            sourceUrl: params.sourceUrl,
+            description: params.description,
+            tags: params.tags,
+          }),
         })
       } else {
         res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
