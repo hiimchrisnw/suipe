@@ -21,6 +21,9 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
   const updateSwipe = useUpdateSwipe()
   const url = getMediaUrl(swipe)
 
+  const [showVideoControls, setShowVideoControls] = useState(false)
+  const hasLeftVideoRef = useRef(false)
+
   const [tags, setTags] = useState(swipe.tags)
   const [tagSearch, setTagSearch] = useState("")
   const [tagInputOpen, setTagInputOpen] = useState(false)
@@ -79,7 +82,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: stopPropagation prevents modal close when clicking content */}
       <div
-        className="flex h-[95vh] w-full max-w-3xl flex-col rounded-xl bg-white p-4 md:p-6"
+        className="flex h-[95vh] w-full max-w-3xl flex-col rounded-lg bg-white p-4 md:p-6"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
@@ -128,7 +131,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                 <span>Add feeling</span>
               </button>
               {tagInputOpen && (
-                <div className="absolute right-0 left-0 z-20 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg md:right-auto md:w-64">
+                <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg md:right-auto md:w-64">
                   <div className="p-2">
                     <input
                       ref={tagInputRef}
@@ -180,7 +183,22 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
         <div className="min-h-0 flex-1">
           {swipe.mediaType === "video" ? (
             // biome-ignore lint/a11y/useMediaCaption: user-uploaded videos don't have caption tracks
-            <video src={url} controls className="h-full w-full rounded-lg object-contain" />
+            <video
+              src={url}
+              controls={showVideoControls}
+              muted
+              autoPlay
+              loop
+              playsInline
+              onMouseLeave={() => {
+                hasLeftVideoRef.current = true
+                setShowVideoControls(false)
+              }}
+              onMouseEnter={() => {
+                if (hasLeftVideoRef.current) setShowVideoControls(true)
+              }}
+              className="h-full w-full rounded-lg object-contain"
+            />
           ) : (
             <img
               src={url}
