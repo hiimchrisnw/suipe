@@ -7,6 +7,8 @@ interface FileUploadParams {
   sourceUrl?: string | undefined
   description?: string | undefined
   tags?: string[] | undefined
+  focalX?: number | undefined
+  focalY?: number | undefined
 }
 
 interface UrlUploadParams {
@@ -15,6 +17,8 @@ interface UrlUploadParams {
   sourceUrl?: string | undefined
   description?: string | undefined
   tags?: string[] | undefined
+  focalX?: number | undefined
+  focalY?: number | undefined
 }
 
 interface MediaFetchUploadParams {
@@ -22,6 +26,8 @@ interface MediaFetchUploadParams {
   sourceUrl?: string | undefined
   description?: string | undefined
   tags?: string[] | undefined
+  focalX?: number | undefined
+  focalY?: number | undefined
 }
 
 export type UploadParams = FileUploadParams | UrlUploadParams | MediaFetchUploadParams
@@ -49,6 +55,8 @@ export function useUpload() {
         if (params.tags && params.tags.length > 0) {
           formData.append("tags", JSON.stringify(params.tags))
         }
+        if (params.focalX !== undefined) formData.append("focal_x", String(params.focalX))
+        if (params.focalY !== undefined) formData.append("focal_y", String(params.focalY))
         res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
           method: "POST",
           body: formData,
@@ -62,6 +70,8 @@ export function useUpload() {
             sourceUrl: params.sourceUrl,
             description: params.description,
             tags: params.tags,
+            focalX: params.focalX,
+            focalY: params.focalY,
           }),
         })
       } else {
@@ -74,6 +84,8 @@ export function useUpload() {
             sourceUrl: params.sourceUrl,
             description: params.description,
             tags: params.tags,
+            focalX: params.focalX,
+            focalY: params.focalY,
           }),
         })
       }

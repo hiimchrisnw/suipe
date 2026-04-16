@@ -16,6 +16,8 @@ export const swipeSchema = z.object({
   sourceUrl: z.string().nullable(),
   description: z.string().nullable(),
   tags: z.array(z.string()),
+  focalX: z.number().nullable(),
+  focalY: z.number().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 })
@@ -30,6 +32,8 @@ export const insertSwipeSchema = swipeSchema
     sourceUrl: true,
     description: true,
     tags: true,
+    focalX: true,
+    focalY: true,
   })
   .partial({
     mediaType: true,
@@ -37,6 +41,8 @@ export const insertSwipeSchema = swipeSchema
     sourceUrl: true,
     description: true,
     tags: true,
+    focalX: true,
+    focalY: true,
   })
 
 export type InsertSwipe = z.infer<typeof insertSwipeSchema>

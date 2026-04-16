@@ -2,8 +2,8 @@ import type { Swipe } from "@suipe/schemas"
 import { useCallback, useState } from "react"
 import { useSwipes } from "../../hooks/use-swipes"
 import { useSearchParamArray } from "../../lib/router"
-import { MasonryGrid } from "./masonry-grid"
 import { RecipeBuilder } from "./recipe-builder"
+import { SwipeCard } from "./swipe-card"
 import { SwipeModal } from "./swipe-modal"
 
 export function BrowsePage() {
@@ -43,7 +43,11 @@ export function BrowsePage() {
           No swipes match this combination. Try removing an emotion.
         </p>
       ) : (
-        <MasonryGrid swipes={swipes} onSelect={setSelected} resetKey={emotions.join(",")} />
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {swipes.map((swipe) => (
+            <SwipeCard key={swipe.id} swipe={swipe} onSelect={setSelected} />
+          ))}
+        </div>
       )}
       <div ref={sentinelRef} aria-hidden="true" />
       {isFetchingNextPage && <p className="py-4 text-center text-gray-400">Loading more...</p>}

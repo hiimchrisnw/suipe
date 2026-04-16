@@ -4,9 +4,10 @@ interface DropZoneProps {
   onFileSelect: (file: File) => void
   preview: string | null
   isVideo: boolean
+  overlay?: React.ReactNode
 }
 
-export function DropZone({ onFileSelect, preview, isVideo }: DropZoneProps) {
+export function DropZone({ onFileSelect, preview, isVideo, overlay }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -50,11 +51,14 @@ export function DropZone({ onFileSelect, preview, isVideo }: DropZoneProps) {
         className="hidden"
       />
       {preview ? (
-        isVideo ? (
-          <video src={preview} muted autoPlay loop className="max-h-80 rounded-lg" />
-        ) : (
-          <img src={preview} alt="Preview" className="max-h-80 rounded-lg" />
-        )
+        <div className="relative inline-block">
+          {isVideo ? (
+            <video src={preview} muted autoPlay loop className="block max-h-80 rounded-lg" />
+          ) : (
+            <img src={preview} alt="Preview" className="block max-h-80 rounded-lg" />
+          )}
+          {overlay}
+        </div>
       ) : (
         <p className="text-base font-normal text-gray-400">Drop a file here, or click to select</p>
       )}

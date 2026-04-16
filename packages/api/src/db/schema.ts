@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm"
-import { sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { real, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 export const swipes = sqliteTable("swipes", {
   id: text("id")
@@ -11,6 +11,8 @@ export const swipes = sqliteTable("swipes", {
   sourceUrl: text("source_url"),
   description: text("description"),
   tags: text("tags").notNull().default("[]"),
+  focalX: real("focal_x"),
+  focalY: real("focal_y"),
   createdAt: text("created_at").notNull().default(sql`(current_timestamp)`),
   updatedAt: text("updated_at").notNull().default(sql`(current_timestamp)`),
 })

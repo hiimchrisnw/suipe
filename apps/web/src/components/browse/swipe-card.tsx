@@ -18,6 +18,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
   const url = getMediaUrl(swipe)
   const cardRef = useRef<HTMLButtonElement>(null)
   const isVisible = useIsVisible(cardRef, OBSERVER_OPTIONS)
+  const objectPosition = `${swipe.focalX ?? 50}% ${swipe.focalY ?? 50}%`
 
   // legitimate-useeffect: subscribing to ResizeObserver so hover scale tracks measured card height
   useEffect(() => {
@@ -38,7 +39,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
       ref={cardRef}
       type="button"
       onClick={() => onSelect(swipe)}
-      className="relative w-full cursor-pointer text-left md:transition-transform md:duration-300 md:ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:scale-[var(--hover-scale,1.02)]"
+      className="relative aspect-square w-full cursor-pointer text-left md:transition-transform md:duration-300 md:ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:scale-[var(--hover-scale,1.02)]"
     >
       {swipe.mediaType === "video" ? (
         <video
@@ -47,10 +48,17 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
           autoPlay
           loop
           playsInline
-          className="w-full rounded-lg"
+          style={{ objectPosition }}
+          className="h-full w-full rounded-lg object-cover ring-1 ring-black/[0.08] ring-inset"
         />
       ) : (
-        <img src={url} alt={swipe.description ?? ""} loading="lazy" className="w-full rounded-lg" />
+        <img
+          src={url}
+          alt={swipe.description ?? ""}
+          loading="lazy"
+          style={{ objectPosition }}
+          className="h-full w-full rounded-lg object-cover ring-1 ring-black/[0.08] ring-inset"
+        />
       )}
     </button>
   )

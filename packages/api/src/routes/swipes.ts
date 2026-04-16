@@ -32,6 +32,13 @@ function deriveMediaType(mimeType: string): string {
   return "image"
 }
 
+function parseFocalCoord(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === "") return null
+  const n = typeof raw === "number" ? raw : Number.parseFloat(String(raw))
+  if (!Number.isFinite(n)) return null
+  return Math.min(100, Math.max(0, n))
+}
+
 function parseRow(row: typeof schema.swipes.$inferSelect) {
   return {
     ...row,
@@ -84,10 +91,14 @@ const swipes = new Hono<{ Bindings: Bindings }>()
         sourceUrl?: string
         description?: string
         tags?: string[]
+        focalX?: number | null
+        focalY?: number | null
       }>()
       console.log("[/swipes/upload] json body:", JSON.stringify(body))
 
       const normalizedTags = (body.tags ?? []).map(toSentenceCase)
+      const focalX = parseFocalCoord(body.focalX)
+      const focalY = parseFocalCoord(body.focalY)
 
       if (body.mediaUrl) {
         let res: Response
@@ -137,6 +148,8 @@ const swipes = new Hono<{ Bindings: Bindings }>()
             sourceUrl: body.sourceUrl ?? null,
             description: body.description ?? null,
             tags: JSON.stringify(normalizedTags),
+            focalX,
+            focalY,
           })
           .returning()
 
@@ -156,6 +169,8 @@ const swipes = new Hono<{ Bindings: Bindings }>()
           sourceUrl: body.sourceUrl ?? null,
           description: body.description ?? null,
           tags: JSON.stringify(normalizedTags),
+          focalX,
+          focalY,
         })
         .returning()
 
@@ -188,6 +203,8 @@ const swipes = new Hono<{ Bindings: Bindings }>()
         sourceUrl: typeof body.source_url === "string" ? body.source_url : null,
         description: typeof body.description === "string" ? body.description : null,
         tags: JSON.stringify(tags),
+        focalX: parseFocalCoord(body.focal_x),
+        focalY: parseFocalCoord(body.focal_y),
       })
       .returning()
 
@@ -197,17 +214,34 @@ const swipes = new Hono<{ Bindings: Bindings }>()
     const id = c.req.param("id")
     const db = createDb(c.env.DB)
 
-    const body = await c.req.json<{ tags?: unknown }>()
-    const rawTags: unknown = body.tags
-    if (!Array.isArray(rawTags) || !rawTags.every((t): t is string => typeof t === "string")) {
-      return c.json({ error: "tags must be an array of strings" }, 400)
+    const body = await c.req.json<{
+      tags?: unknown
+      focalX?: unknown
+      focalY?: unknown
+    }>()
+
+    const patch: Partial<typeof schema.swipes.$inferInsert> = {}
+
+    if (body.tags !== undefined) {
+      if (
+        !Array.isArray(body.tags) ||
+        !body.tags.every((t): t is string => typeof t === "string")
+      ) {
+        return c.json({ error: "tags must be an array of strings" }, 400)
+      }
+      patch.tags = JSON.stringify(body.tags.map(toSentenceCase))
     }
 
-    const normalizedTags = rawTags.map(toSentenceCase)
+    if (body.focalX !== undefined) patch.focalX = parseFocalCoord(body.focalX)
+    if (body.focalY !== undefined) patch.focalY = parseFocalCoord(body.focalY)
+
+    if (Object.keys(patch).length === 0) {
+      return c.json({ error: "No updatable fields provided" }, 400)
+    }
 
     const [updated] = await db
       .update(schema.swipes)
-      .set({ tags: JSON.stringify(normalizedTags) })
+      .set(patch)
       .where(eq(schema.swipes.id, id))
       .returning()
 

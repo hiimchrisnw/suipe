@@ -6,6 +6,7 @@ import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
 import { useTags } from "../../hooks/use-tags"
 import { useUpdateSwipe } from "../../hooks/use-update-swipe"
 import { getMediaUrl } from "../../lib/image-url"
+import { FocalPicker } from "../common/focal-picker"
 
 function toTitleCase(s: string) {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
@@ -23,6 +24,10 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
 
   const [showVideoControls, setShowVideoControls] = useState(false)
   const hasLeftVideoRef = useRef(false)
+
+  const [focalX, setFocalX] = useState(swipe.focalX ?? 50)
+  const [focalY, setFocalY] = useState(swipe.focalY ?? 50)
+  const [imageAspect, setImageAspect] = useState<number>(1)
 
   const [tags, setTags] = useState(swipe.tags)
   const [tagSearch, setTagSearch] = useState("")
@@ -180,31 +185,54 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           </div>
         </div>
 
-        <div className="min-h-0 flex-1">
-          {swipe.mediaType === "video" ? (
-            <video
-              src={url}
-              controls={showVideoControls}
-              muted
-              autoPlay
-              loop
-              playsInline
-              onMouseLeave={() => {
-                hasLeftVideoRef.current = true
-                setShowVideoControls(false)
+        <div className="flex min-h-0 flex-1 items-center justify-center">
+          <div className="relative max-h-full max-w-full" style={{ aspectRatio: imageAspect }}>
+            {swipe.mediaType === "video" ? (
+              <video
+                src={url}
+                controls={showVideoControls}
+                muted
+                autoPlay
+                loop
+                playsInline
+                onLoadedMetadata={(e) => {
+                  const w = e.currentTarget.videoWidth
+                  const h = e.currentTarget.videoHeight
+                  if (w > 0 && h > 0) setImageAspect(w / h)
+                }}
+                onMouseLeave={() => {
+                  hasLeftVideoRef.current = true
+                  setShowVideoControls(false)
+                }}
+                onMouseEnter={() => {
+                  if (hasLeftVideoRef.current) setShowVideoControls(true)
+                }}
+                style={{ objectPosition: `${focalX}% ${focalY}%` }}
+                className="block h-full w-full rounded-lg object-contain"
+              />
+            ) : (
+              <img
+                src={url}
+                alt={swipe.description ?? ""}
+                onLoad={(e) => {
+                  const w = e.currentTarget.naturalWidth
+                  const h = e.currentTarget.naturalHeight
+                  if (w > 0 && h > 0) setImageAspect(w / h)
+                }}
+                style={{ objectPosition: `${focalX}% ${focalY}%` }}
+                className="block h-full w-full rounded-lg object-contain"
+              />
+            )}
+            <FocalPicker
+              x={focalX}
+              y={focalY}
+              onChange={(x, y) => {
+                setFocalX(x)
+                setFocalY(y)
               }}
-              onMouseEnter={() => {
-                if (hasLeftVideoRef.current) setShowVideoControls(true)
-              }}
-              className="h-full w-full rounded-lg object-contain"
+              onDragEnd={(x, y) => updateSwipe.mutate({ id: swipe.id, focalX: x, focalY: y })}
             />
-          ) : (
-            <img
-              src={url}
-              alt={swipe.description ?? ""}
-              className="h-full w-full rounded-lg object-contain"
-            />
-          )}
+          </div>
         </div>
 
         <div className="mt-4 flex shrink-0 items-center justify-between">

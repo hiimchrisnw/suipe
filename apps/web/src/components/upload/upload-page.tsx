@@ -3,6 +3,7 @@ import { useFetchUrl } from "../../hooks/use-fetch-url"
 import { useSuggestTags } from "../../hooks/use-suggest-tags"
 import { useUpload } from "../../hooks/use-upload"
 import { cropMobbinFromBottom } from "../../lib/crop-image"
+import { FocalPicker } from "../common/focal-picker"
 import { DropZone } from "./drop-zone"
 import { TagInput } from "./tag-input"
 
@@ -21,6 +22,8 @@ export function UploadPage() {
   const [fromMobbin, setFromMobbin] = useState(false)
   const [designSpells, setDesignSpells] = useState(false)
   const [cropError, setCropError] = useState<string | null>(null)
+  const [focalX, setFocalX] = useState(50)
+  const [focalY, setFocalY] = useState(50)
   const tagsEditedRef = useRef(false)
   const upload = useUpload()
   const suggestTags = useSuggestTags()
@@ -34,6 +37,8 @@ export function UploadPage() {
   function handleFileSelect(selected: File) {
     setFile(selected)
     setCropError(null)
+    setFocalX(50)
+    setFocalY(50)
     tagsEditedRef.current = false
     suggestTags.mutate(selected, {
       onSuccess: (suggested) => {
@@ -69,6 +74,8 @@ export function UploadPage() {
     fetchUrl.mutate(url, {
       onSuccess: (result) => {
         setFetchedMedia({ url: result.url, mimeType: result.mimeType, sourceUrl: url })
+        setFocalX(50)
+        setFocalY(50)
       },
     })
   }
@@ -105,6 +112,8 @@ export function UploadPage() {
         sourceUrl: media.sourceUrl,
         description: description || undefined,
         tags: tagsList,
+        focalX,
+        focalY,
       })
       return
     }
@@ -126,6 +135,8 @@ export function UploadPage() {
         sourceUrl: trimmedSource || undefined,
         description: description || undefined,
         tags: tagsList,
+        focalX,
+        focalY,
       })
       return
     }
@@ -141,6 +152,8 @@ export function UploadPage() {
         sourceUrl: trimmedSource || undefined,
         description: description || undefined,
         tags: tagsList,
+        focalX,
+        focalY,
       })
     }
   }
@@ -162,11 +175,27 @@ export function UploadPage() {
           {designSpells ? (
             <div className="flex min-h-48 w-full items-center justify-center rounded-xl border-2 border-dashed border-gray-300">
               {preview ? (
-                isVideo ? (
-                  <video src={preview} muted autoPlay loop className="max-h-80 rounded-lg" />
-                ) : (
-                  <img src={preview} alt="Preview" className="max-h-80 rounded-lg" />
-                )
+                <div className="relative inline-block">
+                  {isVideo ? (
+                    <video
+                      src={preview}
+                      muted
+                      autoPlay
+                      loop
+                      className="block max-h-80 rounded-lg"
+                    />
+                  ) : (
+                    <img src={preview} alt="Preview" className="block max-h-80 rounded-lg" />
+                  )}
+                  <FocalPicker
+                    x={focalX}
+                    y={focalY}
+                    onChange={(x, y) => {
+                      setFocalX(x)
+                      setFocalY(y)
+                    }}
+                  />
+                </div>
               ) : (
                 <p className="text-base font-normal text-gray-400">
                   {fetchUrl.isPending ? "Fetching..." : "Paste a Design Spells URL to preview"}
@@ -174,7 +203,23 @@ export function UploadPage() {
               )}
             </div>
           ) : (
-            <DropZone onFileSelect={handleFileSelect} preview={preview} isVideo={isVideo} />
+            <DropZone
+              onFileSelect={handleFileSelect}
+              preview={preview}
+              isVideo={isVideo}
+              overlay={
+                preview ? (
+                  <FocalPicker
+                    x={focalX}
+                    y={focalY}
+                    onChange={(x, y) => {
+                      setFocalX(x)
+                      setFocalY(y)
+                    }}
+                  />
+                ) : undefined
+              }
+            />
           )}
 
           <div className="flex flex-wrap gap-x-4 gap-y-2">
