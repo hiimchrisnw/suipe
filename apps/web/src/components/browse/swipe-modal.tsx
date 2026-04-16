@@ -182,7 +182,6 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
 
         <div className="min-h-0 flex-1">
           {swipe.mediaType === "video" ? (
-            // biome-ignore lint/a11y/useMediaCaption: user-uploaded videos don't have caption tracks
             <video
               src={url}
               controls={showVideoControls}
