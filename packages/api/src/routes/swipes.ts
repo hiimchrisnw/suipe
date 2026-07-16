@@ -1,4 +1,4 @@
-import { and, desc, eq, like } from "drizzle-orm"
+import { and, desc, eq, like, or } from "drizzle-orm"
 import { Hono } from "hono"
 import { createDb, schema } from "../db"
 import type { Bindings } from "../index"
@@ -309,6 +309,31 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       }
     }
     return c.json([...tagSet].sort())
+  })
+  .get("/check-duplicate", async (c) => {
+    const sourceUrl = c.req.query("sourceUrl")?.trim()
+    const mediaUrl = c.req.query("mediaUrl")?.trim()
+
+    if (!sourceUrl && !mediaUrl) {
+      return c.json({ error: "Provide sourceUrl or mediaUrl" }, 400)
+    }
+
+    const db = createDb(c.env.DB)
+    const conditions = [
+      sourceUrl ? eq(schema.swipes.sourceUrl, sourceUrl) : undefined,
+      mediaUrl ? eq(schema.swipes.imageUrl, mediaUrl) : undefined,
+    ].filter((cond) => cond !== undefined)
+
+    const [match] = await db
+      .select({ id: schema.swipes.id })
+      .from(schema.swipes)
+      .where(or(...conditions))
+      .limit(1)
+
+    if (match) {
+      return c.json({ duplicate: true as const, id: match.id })
+    }
+    return c.json({ duplicate: false as const })
   })
   .get("/:id", async (c) => {
     const id = c.req.param("id")

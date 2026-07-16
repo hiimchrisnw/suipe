@@ -1,4 +1,5 @@
 import { useRef, useState } from "react"
+import { useCheckDuplicate } from "../../hooks/use-check-duplicate"
 import { useFetchUrl } from "../../hooks/use-fetch-url"
 import { useSuggestTags } from "../../hooks/use-suggest-tags"
 import { useUpload } from "../../hooks/use-upload"
@@ -24,10 +25,12 @@ export function UploadPage() {
   const [cropError, setCropError] = useState<string | null>(null)
   const [focalX, setFocalX] = useState(50)
   const [focalY, setFocalY] = useState(50)
+  const [duplicateMessage, setDuplicateMessage] = useState<string | null>(null)
   const tagsEditedRef = useRef(false)
   const upload = useUpload()
   const suggestTags = useSuggestTags()
   const fetchUrl = useFetchUrl()
+  const checkDuplicate = useCheckDuplicate()
 
   const preview = file ? URL.createObjectURL(file) : (fetchedMedia?.url ?? null)
   const isVideo = file
@@ -89,9 +92,27 @@ export function UploadPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setDuplicateMessage(null)
 
     const tagsList = tags.length > 0 ? tags : undefined
     const trimmedSource = sourceUrl.trim()
+    const mediaUrlToCheck = !file ? fetchedMedia?.url : undefined
+
+    if (trimmedSource || mediaUrlToCheck) {
+      try {
+        const result = await checkDuplicate.mutateAsync({
+          sourceUrl: trimmedSource || undefined,
+          mediaUrl: mediaUrlToCheck,
+        })
+        if (result.duplicate) {
+          setDuplicateMessage("This has already been saved")
+          return
+        }
+      } catch {
+        setDuplicateMessage("Couldn't check for duplicates. Please try again.")
+        return
+      }
+    }
 
     if (designSpells) {
       if (!trimmedSource) return
@@ -160,7 +181,8 @@ export function UploadPage() {
 
   const canSubmit =
     (designSpells ? sourceUrl.trim().length > 0 : file !== null || fetchedMedia !== null) &&
-    !upload.isPending
+    !upload.isPending &&
+    !checkDuplicate.isPending
 
   const urlLabel = designSpells ? "Design Spells URL" : "Source URL"
   const urlPlaceholder = designSpells
@@ -298,9 +320,16 @@ export function UploadPage() {
             disabled={!canSubmit}
             className="w-full rounded-lg bg-gray-900 px-4 py-2 text-base font-normal text-white disabled:opacity-50"
           >
-            {upload.isPending ? "Uploading..." : "Upload"}
+            {checkDuplicate.isPending
+              ? "Checking..."
+              : upload.isPending
+                ? "Uploading..."
+                : "Upload"}
           </button>
 
+          {duplicateMessage && (
+            <p className="text-base font-normal text-red-600">{duplicateMessage}</p>
+          )}
           {cropError && <p className="text-base font-normal text-red-600">{cropError}</p>}
           {upload.isError && (
             <p className="text-base font-normal text-red-600">Upload failed. Please try again.</p>
