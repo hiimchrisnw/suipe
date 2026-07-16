@@ -260,34 +260,37 @@ export function UploadPage() {
             />
           )}
 
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            <label className="flex items-center gap-2 text-base font-normal text-gray-700">
-              <input
-                type="checkbox"
-                checked={fromMobbin}
-                onChange={(e) => handleMobbinChange(e.target.checked)}
-                className="h-4 w-4"
-              />
-              From Mobbin
-            </label>
-            <label className="flex items-center gap-2 text-base font-normal text-gray-700">
-              <input
-                type="checkbox"
-                checked={designSpells}
-                onChange={(e) => handleDesignSpellsChange(e.target.checked)}
-                className="h-4 w-4"
-              />
-              Design Spells
-            </label>
-            <label className="flex items-center gap-2 text-base font-normal text-gray-700">
-              <input
-                type="checkbox"
-                checked={sixtyFps}
-                onChange={(e) => handleSixtyFpsChange(e.target.checked)}
-                className="h-4 w-4"
-              />
-              60 FPS
-            </label>
+          <div>
+            <p className="mb-1 text-base font-normal text-gray-700">Source</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              <label className="flex items-center gap-2 text-base font-normal text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={fromMobbin}
+                  onChange={(e) => handleMobbinChange(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                Mobbin
+              </label>
+              <label className="flex items-center gap-2 text-base font-normal text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={designSpells}
+                  onChange={(e) => handleDesignSpellsChange(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                Design Spells
+              </label>
+              <label className="flex items-center gap-2 text-base font-normal text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={sixtyFps}
+                  onChange={(e) => handleSixtyFpsChange(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                60 FPS
+              </label>
+            </div>
           </div>
 
           <div>
