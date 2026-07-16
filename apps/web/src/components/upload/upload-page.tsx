@@ -14,6 +14,8 @@ interface FetchedMedia {
   sourceUrl: string
 }
 
+const SIXTY_FPS_URL = "https://60fps.design/"
+
 export function UploadPage() {
   const [file, setFile] = useState<File | null>(null)
   const [fetchedMedia, setFetchedMedia] = useState<FetchedMedia | null>(null)
@@ -22,6 +24,7 @@ export function UploadPage() {
   const [tags, setTags] = useState<string[]>([])
   const [fromMobbin, setFromMobbin] = useState(false)
   const [designSpells, setDesignSpells] = useState(false)
+  const [sixtyFps, setSixtyFps] = useState(false)
   const [cropError, setCropError] = useState<string | null>(null)
   const [focalX, setFocalX] = useState(50)
   const [focalY, setFocalY] = useState(50)
@@ -54,14 +57,26 @@ export function UploadPage() {
 
   function handleMobbinChange(checked: boolean) {
     setFromMobbin(checked)
-    if (checked) setDesignSpells(false)
+    if (checked) {
+      setDesignSpells(false)
+      setSixtyFps(false)
+    }
   }
 
   function handleDesignSpellsChange(checked: boolean) {
     setDesignSpells(checked)
     if (checked) {
       setFromMobbin(false)
+      setSixtyFps(false)
       setFile(null)
+    }
+  }
+
+  function handleSixtyFpsChange(checked: boolean) {
+    setSixtyFps(checked)
+    if (checked) {
+      setFromMobbin(false)
+      setDesignSpells(false)
     }
   }
 
@@ -96,6 +111,7 @@ export function UploadPage() {
 
     const tagsList = tags.length > 0 ? tags : undefined
     const trimmedSource = sourceUrl.trim()
+    const effectiveSource = sixtyFps ? SIXTY_FPS_URL : trimmedSource || undefined
     const mediaUrlToCheck = !file ? fetchedMedia?.url : undefined
 
     if (trimmedSource || mediaUrlToCheck) {
@@ -153,7 +169,7 @@ export function UploadPage() {
 
       upload.mutate({
         file: payloadFile,
-        sourceUrl: trimmedSource || undefined,
+        sourceUrl: effectiveSource,
         description: description || undefined,
         tags: tagsList,
         focalX,
@@ -170,7 +186,7 @@ export function UploadPage() {
           : fetchedMedia.mimeType === "image/gif"
             ? "gif"
             : "image",
-        sourceUrl: trimmedSource || undefined,
+        sourceUrl: effectiveSource,
         description: description || undefined,
         tags: tagsList,
         focalX,
@@ -262,6 +278,15 @@ export function UploadPage() {
                 className="h-4 w-4"
               />
               Design Spells
+            </label>
+            <label className="flex items-center gap-2 text-base font-normal text-gray-700">
+              <input
+                type="checkbox"
+                checked={sixtyFps}
+                onChange={(e) => handleSixtyFpsChange(e.target.checked)}
+                className="h-4 w-4"
+              />
+              60 FPS
             </label>
           </div>
 
