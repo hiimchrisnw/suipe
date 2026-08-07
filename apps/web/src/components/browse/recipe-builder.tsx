@@ -54,8 +54,9 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
   }
 
   return (
+    // Pins below the nav once scrolled to; bg-white so the grid scrolls out of sight behind it.
     <div
-      className="flex justify-center pt-2 pb-6"
+      className="sticky top-0 z-30 flex justify-center bg-white py-6"
       style={{ "--pill-bg": "white", "--pill-border": "#d1d5db" } as React.CSSProperties}
     >
       <div

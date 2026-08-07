@@ -34,7 +34,8 @@ export function BrowsePage() {
   )
 
   return (
-    <div className="space-y-3 p-4 md:space-y-4 md:p-6">
+    // Top padding lives on the sticky bar itself so the gap above it survives scrolling.
+    <div className="space-y-3 px-4 pb-4 md:space-y-4 md:px-6 md:pb-6">
       <RecipeBuilder emotions={emotions} />
       {isLoading ? (
         <p className="py-20 text-center text-gray-400">Loading...</p>
