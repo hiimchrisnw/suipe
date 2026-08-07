@@ -39,6 +39,19 @@ function parseFocalCoord(raw: unknown): number | null {
   return Math.min(100, Math.max(0, n))
 }
 
+// Presigned URLs (S3/R2, GCS, Azure SAS) stop resolving once their signature expires,
+// so they must be re-hosted rather than stored as an external hotlink.
+const EPHEMERAL_URL_PARAMS = ["x-amz-signature", "x-goog-signature", "sig", "signature", "token"]
+
+function isEphemeralUrl(url: string): boolean {
+  try {
+    const params = new URL(url).searchParams
+    return EPHEMERAL_URL_PARAMS.some((p) => params.has(p))
+  } catch {
+    return false
+  }
+}
+
 function parseRow(row: typeof schema.swipes.$inferSelect) {
   return {
     ...row,
@@ -100,10 +113,15 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       const focalX = parseFocalCoord(body.focalX)
       const focalY = parseFocalCoord(body.focalY)
 
-      if (body.mediaUrl) {
+      // An imageUrl carrying a presigned signature would rot, so re-host it like a mediaUrl.
+      const rehostUrl =
+        body.mediaUrl ??
+        (body.imageUrl && isEphemeralUrl(body.imageUrl) ? body.imageUrl : undefined)
+
+      if (rehostUrl) {
         let res: Response
         try {
-          res = await fetch(body.mediaUrl, {
+          res = await fetch(rehostUrl, {
             headers: { "User-Agent": "Mozilla/5.0 (compatible; Suipe/1.0)" },
           })
         } catch (err) {
@@ -125,7 +143,7 @@ const swipes = new Hono<{ Bindings: Bindings }>()
           res.headers.get("content-type")?.split(";")[0]?.trim() ?? "application/octet-stream"
         const pathname = (() => {
           try {
-            return new URL(body.mediaUrl).pathname
+            return new URL(rehostUrl).pathname
           } catch {
             return ""
           }
