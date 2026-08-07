@@ -80,14 +80,15 @@ export function UploadPage() {
     }
   }
 
-  function handleSourceUrlFetch() {
-    const url = sourceUrl.trim()
+  function handleSourceUrlFetch(override?: string) {
+    const url = (override ?? sourceUrl).trim()
     if (!url) {
       setFetchedMedia(null)
       return
     }
     if (file) return
     if (fetchedMedia?.sourceUrl === url) return
+    if (fetchUrl.isPending) return
 
     fetchUrl.mutate(url, {
       onSuccess: (result) => {
@@ -96,6 +97,20 @@ export function UploadPage() {
         setFocalY(50)
       },
     })
+  }
+
+  // Fetch straight off the paste — waiting for blur/Enter makes the preview feel broken.
+  function handleSourceUrlPaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const pasted = e.clipboardData.getData("text")
+    if (!pasted.trim()) return
+    // Apply the paste ourselves so the fetched value matches what lands in the field.
+    const input = e.currentTarget
+    const start = input.selectionStart ?? input.value.length
+    const end = input.selectionEnd ?? input.value.length
+    const next = input.value.slice(0, start) + pasted + input.value.slice(end)
+    e.preventDefault()
+    setSourceUrl(next)
+    handleSourceUrlFetch(next)
   }
 
   function handleSourceUrlKeyDown(e: React.KeyboardEvent) {
@@ -308,7 +323,8 @@ export function UploadPage() {
               type="url"
               value={sourceUrl}
               onChange={(e) => setSourceUrl(e.target.value)}
-              onBlur={handleSourceUrlFetch}
+              onBlur={() => handleSourceUrlFetch()}
+              onPaste={handleSourceUrlPaste}
               onKeyDown={handleSourceUrlKeyDown}
               placeholder={urlPlaceholder}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base font-normal focus:border-gray-900 focus:outline-none"

@@ -111,6 +111,19 @@ function extractMediaLinks(html: string): string[] {
   return hrefs
 }
 
+// Some SPAs (Savee) intermittently serve a pre-hydration shell whose only og:image is the
+// site-wide default. That yields a "successful" scrape pointing at a placeholder, so treat
+// these as a miss and let the caller retry for a properly rendered response.
+const PLACEHOLDER_MEDIA_PATTERNS = [
+  /\/default-og-image\./i,
+  /\/img\/default-/i,
+  /\/placeholder[-.]/i,
+]
+
+function isPlaceholderMedia(url: string): boolean {
+  return PLACEHOLDER_MEDIA_PATTERNS.some((pattern) => pattern.test(url))
+}
+
 function resolveUrl(base: string, relative: string): string {
   try {
     return new URL(relative, base).href
@@ -141,17 +154,26 @@ function findPrimaryMediaUrl(url: string, html: string): string | null {
   return null
 }
 
-export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
-  const ext = getExtensionFromUrl(url)
-  if (ext) {
-    return await verifyMediaUrl(url)
-  }
+// A page that renders its media client-side may need several tries before a request lands on a
+// backend that returns fully rendered HTML. Measured against Savee: ~50% of cold requests return
+// the shell, so a handful of spaced attempts turns a coin flip into a near-certainty.
+const PAGE_ATTEMPTS = 6
+const PAGE_RETRY_DELAY_MS = 300
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function scrapePageOnce(url: string): Promise<FetchUrlResult | null> {
   const pageRes = await fetch(url, {
     headers: { "User-Agent": "Mozilla/5.0 (compatible; Suipe/1.0)" },
   })
   if (!pageRes.ok) {
-    throw new Error(`Failed to fetch URL: ${pageRes.status}`)
+    // 4xx is a settled answer; 5xx and friends are worth another attempt.
+    if (pageRes.status >= 400 && pageRes.status < 500) {
+      throw new Error(`Failed to fetch URL: ${pageRes.status}`)
+    }
+    return null
   }
 
   const contentType = pageRes.headers.get("content-type") ?? ""
@@ -162,9 +184,31 @@ export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
 
   const html = await pageRes.text()
   const mediaUrl = findPrimaryMediaUrl(url, html)
-  if (!mediaUrl) {
-    throw new Error("No media found on page")
+  if (!mediaUrl || isPlaceholderMedia(mediaUrl)) {
+    return null
   }
 
   return await verifyMediaUrl(mediaUrl)
+}
+
+export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
+  const ext = getExtensionFromUrl(url)
+  if (ext) {
+    return await verifyMediaUrl(url)
+  }
+
+  for (let attempt = 1; attempt <= PAGE_ATTEMPTS; attempt++) {
+    let result: FetchUrlResult | null = null
+    try {
+      result = await scrapePageOnce(url)
+    } catch (e) {
+      // A 4xx is final; anything else (network blip) gets retried.
+      if (e instanceof Error && e.message.startsWith("Failed to fetch URL:")) throw e
+      if (attempt === PAGE_ATTEMPTS) throw e
+    }
+    if (result) return result
+    if (attempt < PAGE_ATTEMPTS) await delay(PAGE_RETRY_DELAY_MS)
+  }
+
+  throw new Error("No media found on page")
 }
