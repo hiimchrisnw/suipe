@@ -191,7 +191,44 @@ async function scrapePageOnce(url: string): Promise<FetchUrlResult | null> {
   return await verifyMediaUrl(mediaUrl)
 }
 
+// recent.design is a client-rendered app: its item pages ship only the site-wide og.png, and the
+// real media is loaded from their public oRPC API. Ask that API directly for the item's gallery.
+const RECENT_ITEM_PATH = /^\/i\/([a-z0-9]+)(?:-[^/]*)?\/?$/i
+
+interface RecentItem {
+  media?: Array<{ url?: string }>
+  cover?: { url?: string } | null
+}
+
+async function fetchRecentDesignMedia(url: string): Promise<FetchUrlResult | null> {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return null
+  }
+  if (parsed.hostname !== "recent.design" && parsed.hostname !== "www.recent.design") return null
+  const id = parsed.pathname.match(RECENT_ITEM_PATH)?.[1]
+  if (!id) return null
+
+  const res = await fetch("https://api.recent.design/rpc/items/byId", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ json: { id } }),
+  })
+  if (!res.ok) throw new Error(`Failed to fetch URL: ${res.status}`)
+
+  const data = (await res.json()) as { json?: RecentItem }
+  const mediaUrl = data.json?.media?.[0]?.url ?? data.json?.cover?.url
+  if (!mediaUrl) throw new Error("No media found on page")
+
+  return await verifyMediaUrl(mediaUrl)
+}
+
 export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
+  const recent = await fetchRecentDesignMedia(url)
+  if (recent) return recent
+
   const ext = getExtensionFromUrl(url)
   if (ext) {
     return await verifyMediaUrl(url)
