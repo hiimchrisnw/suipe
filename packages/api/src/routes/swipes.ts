@@ -1,8 +1,9 @@
-import { and, desc, eq, like, or } from "drizzle-orm"
+import { type AnyColumn, and, desc, eq, like, or, sql } from "drizzle-orm"
 import { Hono } from "hono"
 import { createDb, schema } from "../db"
 import type { Bindings } from "../index"
 import { suggestTags } from "../lib/ai-tagging"
+import { normalizeUrl } from "../lib/normalize-url"
 import { fetchUrlMedia } from "../lib/url-scraper"
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
@@ -336,17 +337,36 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       return c.json({ error: "Provide sourceUrl or mediaUrl" }, 400)
     }
 
+    const normalizedSource = sourceUrl ? normalizeUrl(sourceUrl) : undefined
+    const normalizedMedia = mediaUrl ? normalizeUrl(mediaUrl) : undefined
+
+    // Narrow to rows whose URL contains the host+path anywhere (case-insensitively), which pulls in
+    // every www/scheme/slash/query variant of the page; the normalized comparison below decides.
+    // instr rather than LIKE: D1 rejects LIKE patterns as long as a typical page URL.
+    const containsHostAndPath = (column: AnyColumn, normalized: string) =>
+      sql`instr(lower(${column}), ${(normalized.split("?")[0] ?? normalized).toLowerCase()}) > 0`
     const db = createDb(c.env.DB)
     const conditions = [
-      sourceUrl ? eq(schema.swipes.sourceUrl, sourceUrl) : undefined,
-      mediaUrl ? eq(schema.swipes.imageUrl, mediaUrl) : undefined,
+      normalizedSource ? containsHostAndPath(schema.swipes.sourceUrl, normalizedSource) : undefined,
+      normalizedMedia ? containsHostAndPath(schema.swipes.imageUrl, normalizedMedia) : undefined,
     ].filter((cond) => cond !== undefined)
 
-    const [match] = await db
-      .select({ id: schema.swipes.id })
+    const candidates = await db
+      .select({
+        id: schema.swipes.id,
+        sourceUrl: schema.swipes.sourceUrl,
+        imageUrl: schema.swipes.imageUrl,
+      })
       .from(schema.swipes)
       .where(or(...conditions))
-      .limit(1)
+
+    const match = candidates.find(
+      (row) =>
+        (normalizedSource !== undefined &&
+          row.sourceUrl !== null &&
+          normalizeUrl(row.sourceUrl) === normalizedSource) ||
+        (normalizedMedia !== undefined && normalizeUrl(row.imageUrl) === normalizedMedia),
+    )
 
     if (match) {
       return c.json({ duplicate: true as const, id: match.id })
