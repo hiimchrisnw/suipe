@@ -34,6 +34,18 @@ export function UploadPage() {
   const suggestTags = useSuggestTags()
   const fetchUrl = useFetchUrl()
   const checkDuplicate = useCheckDuplicate()
+  const checkedUrlRef = useRef<string | null>(null)
+
+  // Flag a duplicate the moment a URL lands, rather than after the user fills the rest in.
+  async function runDuplicateCheck(params: { sourceUrl?: string; mediaUrl?: string }) {
+    try {
+      const result = await checkDuplicate.mutateAsync(params)
+      setDuplicateMessage(result.duplicate ? "This has already been saved" : null)
+    } catch {
+      // A failing check shouldn't block the form; handleSubmit checks again before saving.
+      setDuplicateMessage(null)
+    }
+  }
 
   const preview = file ? URL.createObjectURL(file) : (fetchedMedia?.url ?? null)
   const isVideo = file
@@ -84,9 +96,15 @@ export function UploadPage() {
     const url = (override ?? sourceUrl).trim()
     if (!url) {
       setFetchedMedia(null)
+      setDuplicateMessage(null)
+      checkedUrlRef.current = null
       return
     }
     if (file) return
+    if (checkedUrlRef.current !== url) {
+      checkedUrlRef.current = url
+      void runDuplicateCheck({ sourceUrl: url })
+    }
     if (fetchedMedia?.sourceUrl === url) return
     if (fetchUrl.isPending) return
 
@@ -95,6 +113,8 @@ export function UploadPage() {
         setFetchedMedia({ url: result.url, mimeType: result.mimeType, sourceUrl: url })
         setFocalX(50)
         setFocalY(50)
+        // The same media can sit behind a different page URL, so check what was fetched too.
+        void runDuplicateCheck({ sourceUrl: url, mediaUrl: result.url })
       },
     })
   }
@@ -213,7 +233,8 @@ export function UploadPage() {
   const canSubmit =
     (designSpells ? sourceUrl.trim().length > 0 : file !== null || fetchedMedia !== null) &&
     !upload.isPending &&
-    !checkDuplicate.isPending
+    !checkDuplicate.isPending &&
+    duplicateMessage === null
 
   const urlLabel = designSpells ? "Design Spells URL" : "Source URL"
   const urlPlaceholder = designSpells
@@ -322,7 +343,10 @@ export function UploadPage() {
               id="source-url"
               type="url"
               value={sourceUrl}
-              onChange={(e) => setSourceUrl(e.target.value)}
+              onChange={(e) => {
+                setSourceUrl(e.target.value)
+                setDuplicateMessage(null)
+              }}
               onBlur={() => handleSourceUrlFetch()}
               onPaste={handleSourceUrlPaste}
               onKeyDown={handleSourceUrlKeyDown}
