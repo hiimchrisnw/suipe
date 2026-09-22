@@ -154,6 +154,20 @@ function findPrimaryMediaUrl(url: string, html: string): string | null {
   return null
 }
 
+// A 4xx from the page is a settled answer and isn't retried. Blocking statuses usually mean a bot
+// wall (e.g. Vercel's Security Checkpoint) that no retry gets past, so say what to do instead.
+const BLOCKED_STATUSES = new Set([401, 403, 429])
+
+class PageFetchError extends Error {}
+
+function pageFetchError(status: number): PageFetchError {
+  return new PageFetchError(
+    BLOCKED_STATUSES.has(status)
+      ? "This site is blocking automatic fetches. Save the media from your browser and upload the file instead."
+      : `Failed to fetch URL: ${status}`,
+  )
+}
+
 // A page that renders its media client-side may need several tries before a request lands on a
 // backend that returns fully rendered HTML. Measured against Savee: ~50% of cold requests return
 // the shell, so a handful of spaced attempts turns a coin flip into a near-certainty.
@@ -171,7 +185,7 @@ async function scrapePageOnce(url: string): Promise<FetchUrlResult | null> {
   if (!pageRes.ok) {
     // 4xx is a settled answer; 5xx and friends are worth another attempt.
     if (pageRes.status >= 400 && pageRes.status < 500) {
-      throw new Error(`Failed to fetch URL: ${pageRes.status}`)
+      throw pageFetchError(pageRes.status)
     }
     return null
   }
@@ -216,7 +230,7 @@ async function fetchRecentDesignMedia(url: string): Promise<FetchUrlResult | nul
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ json: { id } }),
   })
-  if (!res.ok) throw new Error(`Failed to fetch URL: ${res.status}`)
+  if (!res.ok) throw pageFetchError(res.status)
 
   const data = (await res.json()) as { json?: RecentItem }
   const mediaUrl = data.json?.media?.[0]?.url ?? data.json?.cover?.url
@@ -240,7 +254,7 @@ export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
       result = await scrapePageOnce(url)
     } catch (e) {
       // A 4xx is final; anything else (network blip) gets retried.
-      if (e instanceof Error && e.message.startsWith("Failed to fetch URL:")) throw e
+      if (e instanceof PageFetchError) throw e
       if (attempt === PAGE_ATTEMPTS) throw e
     }
     if (result) return result
