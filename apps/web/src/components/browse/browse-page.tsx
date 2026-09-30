@@ -41,7 +41,7 @@ export function BrowsePage() {
         <p className="py-20 text-center text-gray-400">Loading...</p>
       ) : swipes.length === 0 && emotions.length > 0 ? (
         <p className="py-20 text-center text-gray-400">
-          No swipes match this combination. Try removing an emotion.
+          No swipes match this combination. Try removing a trait.
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">

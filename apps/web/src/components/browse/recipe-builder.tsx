@@ -90,7 +90,7 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
             className={`flex items-center justify-center rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] text-gray-500 hover:border-gray-600 hover:text-gray-700 ${emotions.length > 0 ? "h-[34px] w-[34px]" : "h-[34px] gap-1 border-dashed px-4 text-base font-normal"}`}
           >
             <span className="text-2xl font-extralight leading-[0]">+</span>
-            {emotions.length === 0 && <span>Connect a feeling</span>}
+            {emotions.length === 0 && <span>Pick a trait</span>}
           </button>
 
           {isOpen && (
@@ -101,7 +101,7 @@ export function RecipeBuilder({ emotions }: RecipeBuilderProps) {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search feelings..."
+                  placeholder="Search traits..."
                   onKeyDown={(e) => {
                     if (e.key === "Escape") setIsOpen(false)
                   }}

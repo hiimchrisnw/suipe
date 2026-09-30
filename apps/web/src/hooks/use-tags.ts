@@ -1,33 +1,22 @@
 import { useQuery } from "@tanstack/react-query"
 
 export const PRESET_TAGS = [
-  "Bold",
   "Calm",
-  "Caring",
   "Celebratory",
-  "Delightful",
-  "Empathetic",
+  "Confident",
+  "Elegant",
   "Energetic",
-  "Exploratory",
   "Friendly",
-  "Fun",
-  "Honest",
-  "Human",
-  "Immersive",
   "Intimate",
-  "Joyful",
-  "Loving",
   "Mysterious",
   "Nostalgic",
-  "Organic",
   "Playful",
   "Precise",
   "Quirky",
-  "Silly",
-  "Supportive",
+  "Rebellious",
+  "Restrained",
   "Trustworthy",
   "Warm",
-  "Witty",
 ] as const
 
 export function useTags() {

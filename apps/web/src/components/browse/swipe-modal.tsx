@@ -133,7 +133,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                 className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-dashed border-gray-300 px-4 text-base font-normal text-gray-400 hover:border-gray-400 hover:text-gray-600"
               >
                 <span className="text-2xl font-extralight leading-[0]">+</span>
-                <span>Add feeling</span>
+                <span>Add a trait</span>
               </button>
               {tagInputOpen && (
                 <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg md:right-auto md:w-64">
@@ -143,7 +143,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                       type="text"
                       value={tagSearch}
                       onChange={(e) => setTagSearch(e.target.value)}
-                      placeholder="Search feelings..."
+                      placeholder="Search traits..."
                       onKeyDown={(e) => {
                         if (e.key === "Escape") setTagInputOpen(false)
                         if (e.key === "Enter") {
