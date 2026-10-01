@@ -56,12 +56,12 @@ export function Nav() {
           type="button"
           onClick={toggleTheme}
           aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          className="flex size-[2.06em] shrink-0 cursor-pointer items-center justify-center rounded-full border border-paper/30 hover:opacity-70"
+          className="flex size-[3.125em] shrink-0 cursor-pointer items-center justify-center rounded-full border border-paper/30 transition-colors duration-150 hover:border-paper/60"
         >
           {theme === "dark" ? (
-            <Sun className="size-[0.85em]" />
+            <Sun className="size-[1.25em]" strokeWidth={1} />
           ) : (
-            <Moon className="size-[0.85em]" />
+            <Moon className="size-[1.25em]" strokeWidth={1} />
           )}
         </button>
       </div>

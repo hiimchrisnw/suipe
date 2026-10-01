@@ -1,8 +1,8 @@
 import { MAX_TRAITS } from "@suipe/schemas"
 import { startTransition, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import crossIcon from "../../assets/cross.svg"
-import crossThinIcon from "../../assets/cross-thin.svg"
+import dashIcon from "../../assets/dash.svg"
+import plusIcon from "../../assets/plus.svg"
 import { useSelectedTraits } from "../../hooks/use-selected-traits"
 import { useTags } from "../../hooks/use-tags"
 import { navigate } from "../../lib/router"
@@ -24,7 +24,7 @@ function CrossMark({ src, className }: { src: string; className?: string }) {
     <span
       aria-hidden="true"
       style={{ maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }}
-      className={`cross-mark inline-block bg-current [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain] ${className ?? ""}`}
+      className={`cross-mark inline-block bg-current [mask-position:center] [mask-repeat:no-repeat] [mask-size:100%_100%] ${className ?? ""}`}
     />
   )
 }
@@ -146,29 +146,32 @@ export function TraitMenu() {
           type="button"
           onClick={() => handleRemoveTag(emotion)}
           // -mr-px: neighbouring pills share one rule rather than sitting apart.
-          className="-mr-px flex shrink-0 items-center justify-center gap-[0.44em] rounded-full border border-paper px-[0.875em] py-[0.22em] text-paper hover:opacity-70"
+          className="group/chip -mr-px flex shrink-0 items-center justify-center gap-[0.5em] rounded-full border border-paper px-[1em] py-[0.75em] text-paper transition-colors duration-150 hover:border-paper/50"
           aria-label={`Remove ${emotion}`}
         >
           {emotion}
-          <CrossMark src={crossIcon} className="h-[0.73em] w-[0.74em] opacity-30" />
+          <CrossMark
+            src={dashIcon}
+            className="h-px w-[1.25em] transition-opacity duration-150 group-hover/chip:opacity-50"
+          />
         </button>
       ))}
 
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className={`flex shrink-0 items-center justify-center gap-[0.44em] rounded-full border text-paper hover:opacity-70 ${
+        className={`flex shrink-0 items-center justify-center gap-[0.5em] rounded-full border text-paper transition-colors duration-150 hover:border-paper/50 ${
           emotions.length > 0
-            ? "border-paper size-[2.06em]"
-            : "border-paper/30 border-dashed px-[0.875em] py-[0.22em]"
+            ? "border-paper size-[3.125em]"
+            : "border-paper/30 border-dashed px-[1em] py-[0.75em]"
         }`}
         aria-expanded={isOpen}
       >
         {emotions.length === 0 && <span>Filter by traits</span>}
         {/* The asset is a cross; rotating it reads as a plus until the menu is open. */}
         <CrossMark
-          src={crossIcon}
-          className={`transition-transform duration-300 h-[0.73em] w-[0.74em] ${isOpen ? "" : "-rotate-45"}`}
+          src={plusIcon}
+          className={`size-[1.25em] transition-transform duration-300 ${isOpen ? "rotate-45" : ""}`}
         />
       </button>
 
@@ -207,7 +210,7 @@ export function TraitMenu() {
                   type="button"
                   onClick={() => handleToggleTag(tag)}
                   disabled={isBlocked}
-                  className={`group/cell relative flex items-center gap-[8px] bg-ink px-3 py-3 text-left font-semibold text-[clamp(14px,4.4vw,44px)] tracking-[-0.03em] transition-colors duration-200 md:px-5 md:py-5 lg:gap-[10px] lg:px-7 lg:py-6 lg:text-[clamp(26px,2.8vw,58px)] ${
+                  className={`group/cell relative flex items-baseline gap-[0.17em] bg-ink px-[0.48em] py-[0.41em] text-left font-semibold text-[clamp(16px,min(5vw,calc(5.8dvh-7px)),40px)] tracking-[-0.03em] transition-colors duration-200 md:text-[clamp(16px,5vw,40px)] lg:text-[clamp(24px,2.55vw,52px)] ${
                     isSelected ? "z-10" : ""
                   } ${isBlocked ? "text-paper/30" : "text-paper"}`}
                   aria-pressed={isSelected}
@@ -225,14 +228,14 @@ export function TraitMenu() {
                           }`
                     }`}
                   />
-                  <span className="shrink-0 font-light font-mono text-[13px] leading-none tracking-[0.01em] opacity-40 tabular-nums lg:text-[16px]">
+                  <span className="-translate-y-[1.81em] shrink-0 font-light font-mono text-[0.28em] leading-none tracking-[0.01em] opacity-40 tabular-nums">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   {tag}
                   {isSelected && (
                     <CrossMark
-                      src={crossThinIcon}
-                      className="relative ml-auto size-[clamp(15px,3.8vw,30px)] shrink-0 opacity-30 lg:size-[clamp(18px,1.8vw,34px)]"
+                      src={dashIcon}
+                      className="relative mr-[0.3em] ml-auto h-px w-[1.25em] shrink-0 self-center"
                     />
                   )}
                 </button>

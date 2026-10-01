@@ -71,7 +71,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
               ? "animate-[heart-pulse_320ms_ease-out] fill-current text-[#ff5247]"
               : "text-paper"
           }`}
-          strokeWidth={1.5}
+          strokeWidth={1}
         />
       </button>
     </div>
