@@ -208,12 +208,15 @@ export function TraitMenu() {
               const isBlocked = !isSelected && emotions.length >= MAX_TRAITS
               // Struck through only once the counts have actually loaded, so nothing flashes.
               const isEmpty = traitCounts !== undefined && (traitCounts[tag] ?? 0) === 0
+              // A dead end leads nowhere, so it stops responding — but a selected trait stays
+              // live even at zero, or an empty combination could never be undone.
+              const isDeadEnd = isEmpty && !isSelected
               return (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => handleToggleTag(tag)}
-                  disabled={isBlocked}
+                  disabled={isBlocked || isDeadEnd}
                   className={`group/cell relative flex items-center bg-ink px-[0.7em] py-[0.41em] lg:px-[0.48em] text-left font-semibold text-[clamp(14px,min(5vw,calc(4.4dvh-5px)),40px)] tracking-[-0.03em] transition-[color,border-radius] duration-150 ease-out md:text-[clamp(16px,5vw,40px)] lg:text-[clamp(24px,2.55vw,52px)] ${
                     isSelected ? "z-10" : ""
                   } text-paper`}
@@ -226,7 +229,7 @@ export function TraitMenu() {
                       isSelected
                         ? "rounded-[65px] border-paper bg-ink"
                         : `rounded-none border-transparent ${
-                            isBlocked
+                            isBlocked || isDeadEnd
                               ? ""
                               : "md:group-hover/cell:rounded-[28px] md:group-hover/cell:border-rule"
                           }`
@@ -234,14 +237,18 @@ export function TraitMenu() {
                   />
                   <span
                     className={`relative flex w-full items-center transition-opacity duration-150 ${
-                      isBlocked ? "opacity-30" : ""
+                      isBlocked || isDeadEnd ? "opacity-40" : ""
                     }`}
                   >
                     <span className="flex flex-col items-start gap-[0.02em] lg:flex-row lg:items-baseline lg:gap-[0.17em]">
                       <span className="min-w-[3ch] shrink-0 font-light font-mono text-[0.55em] leading-none tracking-[0.01em] opacity-40 tabular-nums lg:-translate-y-[1.81em] lg:text-[0.28em]">
                         {String(traitCounts?.[tag] ?? 0).padStart(3, "0")}
                       </span>
-                      <span className={isEmpty ? "line-through decoration-[0.12em]" : ""}>
+                      <span
+                        className={`transition-opacity duration-150 ${
+                          isEmpty ? "line-through decoration-[0.12em]" : ""
+                        } ${isBlocked || isDeadEnd ? "opacity-25" : ""}`}
+                      >
                         {tag}
                       </span>
                     </span>
