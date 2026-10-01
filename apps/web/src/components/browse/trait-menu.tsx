@@ -1,5 +1,5 @@
 import { MAX_TRAITS } from "@suipe/schemas"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import crossIcon from "../../assets/cross.svg"
 import crossThinIcon from "../../assets/cross-thin.svg"
 import { useSelectedTraits } from "../../hooks/use-selected-traits"
@@ -21,22 +21,30 @@ export function TraitMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const { data: allTags } = useTags()
 
-  // React 19 callback ref cleanup — click-outside and Escape close the menu.
-  const containerRef = useCallback((el: HTMLDivElement | null) => {
-    if (!el) return
-    const onMouseDown = (e: MouseEvent) => {
-      if (!el.contains(e.target as Node)) setIsOpen(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // legitimate-useeffect: while the menu is down it owns the page's clicks and keys
+  useEffect(() => {
+    if (!isOpen) return
+
+    // Capture phase, so a click outside closes the menu and goes no further — otherwise it also
+    // lands on whatever is behind it, opening a swipe.
+    const onClick = (e: MouseEvent) => {
+      if (containerRef.current?.contains(e.target as Node)) return
+      e.preventDefault()
+      e.stopPropagation()
+      setIsOpen(false)
     }
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setIsOpen(false)
     }
-    document.addEventListener("mousedown", onMouseDown)
+    document.addEventListener("click", onClick, true)
     document.addEventListener("keydown", onKeyDown)
     return () => {
-      document.removeEventListener("mousedown", onMouseDown)
+      document.removeEventListener("click", onClick, true)
       document.removeEventListener("keydown", onKeyDown)
     }
-  }, []) // setIsOpen from useState is stable
+  }, [isOpen])
 
   // legitimate-useeffect: the open menu owns the viewport, so the page behind it must not scroll
   useEffect(() => {
