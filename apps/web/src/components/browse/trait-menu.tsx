@@ -153,7 +153,7 @@ export function TraitMenu() {
         inert={!isOpen}
       >
         <div
-          className={`h-[calc(100dvh-var(--nav-h,120px))] overflow-y-auto bg-ink pb-4 transition-transform duration-300 ease-out md:h-auto md:overflow-visible md:pb-7 ${
+          className={`h-[calc(100dvh-var(--nav-h,120px))] overflow-hidden bg-ink pb-4 transition-transform duration-300 ease-out md:h-auto md:overflow-visible md:pb-7 ${
             isOpen ? "translate-y-0" : "-translate-y-full"
           }`}
         >
