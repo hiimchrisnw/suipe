@@ -187,7 +187,7 @@ export function TraitMenu() {
         >
           {/* A rule-coloured bed showing through 1px gaps: one crisp line everywhere, no doubling. */}
           <div className="grid h-full grid-flow-col grid-cols-2 grid-rows-8 gap-px bg-rule p-px md:h-auto lg:grid-cols-4 lg:grid-rows-4">
-            {(allTags ?? []).map((tag) => {
+            {(allTags ?? []).map((tag, index) => {
               const isSelected = emotions.includes(tag)
               const isBlocked = !isSelected && emotions.length >= MAX_TRAITS
               return (
@@ -196,7 +196,7 @@ export function TraitMenu() {
                   type="button"
                   onClick={() => handleToggleTag(tag)}
                   disabled={isBlocked}
-                  className={`relative flex items-center gap-3 bg-ink px-5 py-3 text-left font-semibold text-[clamp(20px,5.2vw,44px)] tracking-[-0.03em] transition-colors duration-200 md:px-6 md:py-5 lg:px-7 lg:py-6 lg:text-[clamp(26px,2.8vw,58px)] ${
+                  className={`relative flex items-center gap-[8px] bg-ink px-3 py-3 text-left font-semibold text-[clamp(14px,4.4vw,44px)] tracking-[-0.03em] transition-colors duration-200 md:px-5 md:py-5 lg:gap-[10px] lg:px-7 lg:py-6 lg:text-[clamp(26px,2.8vw,58px)] ${
                     isSelected ? "z-10" : ""
                   } ${isBlocked ? "text-paper/30" : "text-paper"}`}
                   aria-pressed={isSelected}
@@ -208,6 +208,9 @@ export function TraitMenu() {
                       isSelected ? "rounded-[64px] border-white" : "rounded-none border-transparent"
                     }`}
                   />
+                  <span className="shrink-0 font-light font-mono text-[13px] leading-none tracking-[0.01em] opacity-40 tabular-nums lg:text-[16px]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                   {tag}
                   {isSelected && (
                     <img
