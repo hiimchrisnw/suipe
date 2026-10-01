@@ -1,5 +1,5 @@
 import { MAX_TRAITS } from "@suipe/schemas"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import crossIcon from "../../assets/cross.svg"
 import crossThinIcon from "../../assets/cross-thin.svg"
 import { useSelectedTraits } from "../../hooks/use-selected-traits"
@@ -16,12 +16,54 @@ function buildEmotionsUrl(next: string[]): string {
   return url.pathname + url.search
 }
 
+// The row sits at the bar's size, shrinking only when long traits would overrun the content width.
+const ROW_FONT_PX = 16
+const MIN_ROW_FONT_PX = 10.5
+
 export function TraitMenu() {
   const emotions = useSelectedTraits()
   const [isOpen, setIsOpen] = useState(false)
   const { data: allTags } = useTags()
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const [rowFontPx, setRowFontPx] = useState(ROW_FONT_PX)
+
+  // legitimate-useeffect: measures laid-out text, which only exists after a render
+  useLayoutEffect(() => {
+    const row = containerRef.current
+    const cell = row?.parentElement
+    const nav = row?.closest("nav")
+    if (!row || !cell || !nav) return
+
+    const fit = () => {
+      const navStyle = getComputedStyle(nav)
+      const padding =
+        Number.parseFloat(navStyle.paddingLeft) + Number.parseFloat(navStyle.paddingRight)
+      const siblings = [...nav.children].filter((child) => child !== cell) as HTMLElement[]
+      // Below md the row drops onto its own line and has the full width to itself.
+      const sharesLine = siblings.some((child) => child.offsetTop === cell.offsetTop)
+      const taken = sharesLine
+        ? siblings.reduce((total, child) => total + child.getBoundingClientRect().width, 0) + 24
+        : 0
+      const available = nav.clientWidth - padding - taken
+      const natural = row.scrollWidth
+      if (available <= 0 || natural <= 0) return
+
+      const current = Number.parseFloat(getComputedStyle(row).fontSize)
+      const target = Math.min(
+        ROW_FONT_PX,
+        Math.max(MIN_ROW_FONT_PX, (current * available) / natural),
+      )
+      setRowFontPx((previous) => (Math.abs(previous - target) > 0.25 ? target : previous))
+    }
+
+    fit()
+    // Watching the row as well as the bar: adding or removing a chip resizes it, which refits.
+    const observer = new ResizeObserver(fit)
+    observer.observe(nav)
+    observer.observe(row)
+    return () => observer.disconnect()
+  }, [])
 
   // legitimate-useeffect: while the menu is down it owns the page's clicks and keys
   useEffect(() => {
@@ -67,18 +109,18 @@ export function TraitMenu() {
 
   return (
     // Static on purpose: the menu below is positioned against the <nav>, so it spans the page.
-    <div ref={containerRef} className="flex items-center">
+    <div ref={containerRef} style={{ fontSize: `${rowFontPx}px` }} className="flex items-center">
       {emotions.map((emotion) => (
         <button
           key={emotion}
           type="button"
           onClick={() => handleRemoveTag(emotion)}
           // -mr-px: neighbouring pills share one rule rather than sitting apart.
-          className="-mr-px flex shrink-0 items-center justify-center gap-[7px] rounded-full border border-paper px-[14px] py-[3.5px] text-paper hover:opacity-70"
+          className="-mr-px flex shrink-0 items-center justify-center gap-[0.44em] rounded-full border border-paper px-[0.875em] py-[0.22em] text-paper hover:opacity-70"
           aria-label={`Remove ${emotion}`}
         >
           {emotion}
-          <img src={crossIcon} alt="" className="h-[11.7px] w-[11.9px] opacity-30" />
+          <img src={crossIcon} alt="" className="h-[0.73em] w-[0.74em] opacity-30" />
         </button>
       ))}
 
@@ -87,10 +129,10 @@ export function TraitMenu() {
         onClick={() => setIsOpen((open) => !open)}
         // At the cap there is nothing left to add, but the menu must still be closable.
         disabled={emotions.length >= MAX_TRAITS && !isOpen}
-        className={`flex shrink-0 items-center justify-center gap-[7px] rounded-full border text-paper hover:opacity-70 disabled:opacity-30 disabled:hover:opacity-30 ${
+        className={`flex shrink-0 items-center justify-center gap-[0.44em] rounded-full border text-paper hover:opacity-70 disabled:opacity-30 disabled:hover:opacity-30 ${
           emotions.length > 0
-            ? "border-paper size-[33px]"
-            : "border-paper/30 border-dashed px-[14px] py-[3.5px]"
+            ? "border-paper size-[2.06em]"
+            : "border-paper/30 border-dashed px-[0.875em] py-[0.22em]"
         }`}
         aria-expanded={isOpen}
       >
@@ -99,7 +141,7 @@ export function TraitMenu() {
         <img
           src={crossIcon}
           alt=""
-          className={`transition-transform duration-300 ${"h-[11.7px] w-[11.9px]"} ${isOpen ? "" : "-rotate-45"}`}
+          className={`transition-transform duration-300 ${"h-[0.73em] w-[0.74em]"} ${isOpen ? "" : "-rotate-45"}`}
         />
       </button>
 
