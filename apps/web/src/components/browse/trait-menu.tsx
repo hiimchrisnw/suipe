@@ -136,7 +136,7 @@ export function TraitMenu() {
         }`}
         aria-expanded={isOpen}
       >
-        {emotions.length === 0 && <span>Add a trait</span>}
+        {emotions.length === 0 && <span>Filter by traits</span>}
         {/* The asset is a cross; rotating it reads as a plus until the menu is open. */}
         <img
           src={crossIcon}
