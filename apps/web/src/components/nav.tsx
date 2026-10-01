@@ -13,8 +13,15 @@ export function Nav() {
   const navRef = useCallback((el: HTMLElement | null) => {
     if (!el) return
     const publish = () => {
-      const bottom = Math.max(0, el.getBoundingClientRect().bottom)
-      document.documentElement.style.setProperty("--nav-h", `${bottom}px`)
+      const root = document.documentElement
+      root.style.setProperty("--nav-h", `${Math.max(0, el.getBoundingClientRect().bottom)}px`)
+
+      // How far the bar rides up when stuck: enough to carry the first row off screen while
+      // leaving the recipe row the same breathing room it has below it. Measured rather than
+      // guessed, so it survives the row changing height.
+      const row = el.querySelector<HTMLElement>("[data-recipe-row]")
+      const gap = Number.parseFloat(getComputedStyle(el).paddingBottom)
+      if (row) root.style.setProperty("--nav-stick", `${Math.max(0, row.offsetTop - gap)}px`)
     }
     publish()
     const observer = new ResizeObserver(publish)
@@ -35,13 +42,16 @@ export function Nav() {
     // relative: the trait menu drops out of the centre cell and spans the full page width.
     <nav
       ref={navRef}
-      className="sticky top-[-52px] z-50 relative grid grid-cols-2 items-center gap-y-8 px-4 pt-6 pb-7 font-medium text-base bg-[var(--color-ink-veil)] tracking-[-0.02em] text-paper backdrop-blur-md data-[menu-open=true]:bg-ink data-[menu-open=true]:backdrop-blur-none md:top-0 md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
+      className="sticky top-[calc(var(--nav-stick,52px)*-1)] z-50 relative grid grid-cols-2 items-center gap-y-8 px-4 pt-6 pb-7 font-medium text-base bg-[var(--color-ink-veil)] tracking-[-0.02em] text-paper backdrop-blur-md data-[menu-open=true]:bg-ink data-[menu-open=true]:backdrop-blur-none md:top-0 md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
     >
       <a href="/" onClick={(e) => handleClick(e, "/")} className="justify-self-start">
         suipe
       </a>
 
-      <div className="order-last col-span-2 justify-self-center md:order-none md:col-span-1">
+      <div
+        data-recipe-row
+        className="order-last col-span-2 justify-self-center md:order-none md:col-span-1"
+      >
         {pathname === "/upload" ? null : <TraitMenu />}
       </div>
 

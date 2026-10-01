@@ -5,6 +5,7 @@ import dashIcon from "../../assets/dash.svg"
 import plusIcon from "../../assets/plus.svg"
 import { useSelectedTraits } from "../../hooks/use-selected-traits"
 import { useTags } from "../../hooks/use-tags"
+import { useTraitCounts } from "../../hooks/use-trait-counts"
 import { navigate } from "../../lib/router"
 
 function buildEmotionsUrl(next: string[]): string {
@@ -37,6 +38,7 @@ export function TraitMenu() {
   const emotions = useSelectedTraits()
   const [isOpen, setIsOpen] = useState(false)
   const { data: allTags } = useTags()
+  const { data: traitCounts } = useTraitCounts(emotions)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [rowFontPx, setRowFontPx] = useState(ROW_FONT_PX)
@@ -200,19 +202,21 @@ export function TraitMenu() {
           }`}
         >
           {/* A rule-coloured bed showing through 1px gaps: one crisp line everywhere, no doubling. */}
-          <div className="mx-4 grid h-full grid-flow-col grid-cols-2 grid-rows-8 gap-px rounded-[28px] bg-rule p-px md:mx-7 [&>*:first-child]:rounded-tl-[27px] [&>*:last-child]:rounded-br-[27px] [&>*:nth-child(8)]:rounded-bl-[27px] [&>*:nth-child(9)]:rounded-tr-[27px] md:h-auto lg:grid-cols-4 lg:grid-rows-4 lg:[&>*:nth-child(13)]:rounded-tr-[27px] lg:[&>*:nth-child(4)]:rounded-bl-[27px] lg:[&>*:nth-child(8)]:rounded-none lg:[&>*:nth-child(9)]:rounded-none">
-            {(allTags ?? []).map((tag, index) => {
+          <div className="trait-bed mx-4 grid h-full grid-flow-col grid-cols-2 grid-rows-8 gap-px rounded-[28px] bg-rule p-px transition-[border-radius] duration-150 ease-out md:mx-7 [&>*:first-child]:rounded-tl-[27px] [&>*:last-child]:rounded-br-[27px] [&>*:nth-child(8)]:rounded-bl-[27px] [&>*:nth-child(9)]:rounded-tr-[27px] [&>[aria-pressed=true]:first-child]:rounded-tl-[64px] [&>[aria-pressed=true]:last-child]:rounded-br-[64px] [&>[aria-pressed=true]:nth-child(8)]:rounded-bl-[64px] [&>[aria-pressed=true]:nth-child(9)]:rounded-tr-[64px] md:h-auto lg:grid-cols-4 lg:grid-rows-4 lg:[&>*:nth-child(13)]:rounded-tr-[27px] lg:[&>*:nth-child(4)]:rounded-bl-[27px] lg:[&>*:nth-child(8)]:rounded-none lg:[&>*:nth-child(9)]:rounded-none lg:[&>[aria-pressed=true]:nth-child(13)]:rounded-tr-[64px] lg:[&>[aria-pressed=true]:nth-child(4)]:rounded-bl-[64px] lg:[&>[aria-pressed=true]:nth-child(8)]:rounded-none lg:[&>[aria-pressed=true]:nth-child(9)]:rounded-none">
+            {(allTags ?? []).map((tag) => {
               const isSelected = emotions.includes(tag)
               const isBlocked = !isSelected && emotions.length >= MAX_TRAITS
+              // Struck through only once the counts have actually loaded, so nothing flashes.
+              const isEmpty = traitCounts !== undefined && (traitCounts[tag] ?? 0) === 0
               return (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => handleToggleTag(tag)}
                   disabled={isBlocked}
-                  className={`group/cell relative flex items-baseline gap-[0.17em] bg-ink px-[0.48em] py-[0.41em] text-left font-semibold text-[clamp(16px,min(5vw,calc(5.8dvh-7px)),40px)] tracking-[-0.03em] transition-colors duration-200 md:text-[clamp(16px,5vw,40px)] lg:text-[clamp(24px,2.55vw,52px)] ${
+                  className={`group/cell relative flex items-center bg-ink px-[0.7em] py-[0.41em] lg:px-[0.48em] text-left font-semibold text-[clamp(14px,min(5vw,calc(4.4dvh-5px)),40px)] tracking-[-0.03em] transition-[color,border-radius] duration-150 ease-out md:text-[clamp(16px,5vw,40px)] lg:text-[clamp(24px,2.55vw,52px)] ${
                     isSelected ? "z-10" : ""
-                  } ${isBlocked ? "text-paper/30" : "text-paper"}`}
+                  } text-paper`}
                   aria-pressed={isSelected}
                 >
                   {/* The pill: radius and colour animate in over the cell's own rules. */}
@@ -220,7 +224,7 @@ export function TraitMenu() {
                     aria-hidden="true"
                     className={`pointer-events-none absolute -inset-px transform-gpu border transition-[border-radius,border-color] duration-150 ease-out ${
                       isSelected
-                        ? "rounded-[64px] border-paper"
+                        ? "rounded-[65px] border-paper bg-ink"
                         : `rounded-none border-transparent ${
                             isBlocked
                               ? ""
@@ -228,16 +232,26 @@ export function TraitMenu() {
                           }`
                     }`}
                   />
-                  <span className="-translate-y-[1.81em] shrink-0 font-light font-mono text-[0.28em] leading-none tracking-[0.01em] opacity-40 tabular-nums">
-                    {String(index + 1).padStart(2, "0")}
+                  <span
+                    className={`relative flex w-full items-center transition-opacity duration-150 ${
+                      isBlocked ? "opacity-30" : ""
+                    }`}
+                  >
+                    <span className="flex flex-col items-start gap-[0.02em] lg:flex-row lg:items-baseline lg:gap-[0.17em]">
+                      <span className="min-w-[3ch] shrink-0 font-light font-mono text-[0.55em] leading-none tracking-[0.01em] opacity-40 tabular-nums lg:-translate-y-[1.81em] lg:text-[0.28em]">
+                        {String(traitCounts?.[tag] ?? 0).padStart(3, "0")}
+                      </span>
+                      <span className={isEmpty ? "line-through decoration-[0.12em]" : ""}>
+                        {tag}
+                      </span>
+                    </span>
+                    {isSelected && (
+                      <CrossMark
+                        src={dashIcon}
+                        className="relative mr-[0.3em] ml-auto h-px w-[1.25em] shrink-0 self-center"
+                      />
+                    )}
                   </span>
-                  {tag}
-                  {isSelected && (
-                    <CrossMark
-                      src={dashIcon}
-                      className="relative mr-[0.3em] ml-auto h-px w-[1.25em] shrink-0 self-center"
-                    />
-                  )}
                 </button>
               )
             })}

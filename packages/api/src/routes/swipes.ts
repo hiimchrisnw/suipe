@@ -351,6 +351,36 @@ const swipes = new Hono<{ Bindings: Bindings }>()
     }
     return c.json([...tagSet].sort())
   })
+  .get("/trait-counts", async (c) => {
+    const rawTags = c.req.query("tags")
+    const tags: string[] = rawTags
+      ? rawTags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+      : []
+    const db = createDb(c.env.DB)
+
+    // Counted over the swipes the current recipe already matches, so each number is what the
+    // recipe would be left with if that trait were added.
+    let query = db.select({ tags: schema.swipes.tags }).from(schema.swipes).$dynamic()
+    if (tags.length > 0) {
+      query = query.where(
+        and(...tags.map((tag) => like(schema.swipes.tags, `%${JSON.stringify(tag)}%`))),
+      )
+    }
+
+    const counts: Record<string, number> = {}
+    for (const row of await query) {
+      const parsed: unknown = JSON.parse(row.tags)
+      if (!Array.isArray(parsed)) continue
+      for (const tag of parsed) {
+        if (typeof tag === "string" && tag.length > 0) counts[tag] = (counts[tag] ?? 0) + 1
+      }
+    }
+
+    return c.json(counts)
+  })
   .get("/check-duplicate", async (c) => {
     const sourceUrl = c.req.query("sourceUrl")?.trim()
     const mediaUrl = c.req.query("mediaUrl")?.trim()
