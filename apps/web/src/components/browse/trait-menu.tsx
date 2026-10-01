@@ -1,5 +1,6 @@
 import { MAX_TRAITS } from "@suipe/schemas"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { startTransition, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import crossIcon from "../../assets/cross.svg"
 import crossThinIcon from "../../assets/cross-thin.svg"
 import { useSelectedTraits } from "../../hooks/use-selected-traits"
@@ -98,13 +99,30 @@ export function TraitMenu() {
     }
   }, [isOpen])
 
+  // legitimate-useeffect: the grid behind the menu is hidden but still decoding video, and the
+  // bar's blur re-samples it every frame. Both are wasted work while the menu is down.
+  useEffect(() => {
+    if (!isOpen) return
+    const nav = containerRef.current?.closest("nav")
+    nav?.setAttribute("data-menu-open", "true")
+
+    const videos = [...document.querySelectorAll("video")].filter((video) => !video.paused)
+    for (const video of videos) video.pause()
+
+    return () => {
+      nav?.removeAttribute("data-menu-open")
+      for (const video of videos) void video.play().catch(() => {})
+    }
+  }, [isOpen])
+
   function handleToggleTag(tag: string) {
     const next = emotions.includes(tag) ? emotions.filter((e) => e !== tag) : [...emotions, tag]
-    navigate(buildEmotionsUrl(next))
+    // Non-urgent: the pill animation gets the frames first, the grid catches up behind it.
+    startTransition(() => navigate(buildEmotionsUrl(next)))
   }
 
   function handleRemoveTag(tag: string) {
-    navigate(buildEmotionsUrl(emotions.filter((e) => e !== tag)))
+    startTransition(() => navigate(buildEmotionsUrl(emotions.filter((e) => e !== tag))))
   }
 
   return (
@@ -127,9 +145,7 @@ export function TraitMenu() {
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        // At the cap there is nothing left to add, but the menu must still be closable.
-        disabled={emotions.length >= MAX_TRAITS && !isOpen}
-        className={`flex shrink-0 items-center justify-center gap-[0.44em] rounded-full border text-paper hover:opacity-70 disabled:opacity-30 disabled:hover:opacity-30 ${
+        className={`flex shrink-0 items-center justify-center gap-[0.44em] rounded-full border text-paper hover:opacity-70 ${
           emotions.length > 0
             ? "border-paper size-[2.06em]"
             : "border-paper/30 border-dashed px-[0.875em] py-[0.22em]"
@@ -145,6 +161,18 @@ export function TraitMenu() {
         />
       </button>
 
+      {/* Portalled to the body so it sits under the bar (z-50) but over the page. On phones the
+          menu already fills the screen, so the dim is desktop only. */}
+      {createPortal(
+        <div
+          aria-hidden="true"
+          className={`fixed inset-0 z-40 hidden bg-ink/90 transition-opacity duration-300 ease-out will-change-[opacity] md:block ${
+            isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
+        />,
+        document.body,
+      )}
+
       {/* Always mounted inside a clipping wrapper so the panel can slide both ways. */}
       <div
         className={`absolute inset-x-4 top-full z-40 overflow-hidden md:inset-x-7 ${
@@ -153,7 +181,7 @@ export function TraitMenu() {
         inert={!isOpen}
       >
         <div
-          className={`h-[calc(100dvh-var(--nav-h,120px))] overflow-hidden bg-ink pb-4 transition-transform duration-300 ease-out md:h-auto md:overflow-visible md:pb-7 ${
+          className={`h-[calc(100dvh-var(--nav-h,120px))] overflow-hidden bg-ink pb-4 transition-transform duration-300 ease-out will-change-transform md:h-auto md:overflow-visible md:pb-7 ${
             isOpen ? "translate-y-0" : "-translate-y-full"
           }`}
         >

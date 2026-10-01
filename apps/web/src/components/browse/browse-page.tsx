@@ -41,10 +41,7 @@ export function BrowsePage() {
         </p>
       ) : (
         <div
-          // Keyed on the filter so each new result set mounts and fades in rather than snapping;
-          // while the next set loads the previous one is held and dimmed.
-          key={emotions.join(",")}
-          className={`grid animate-[fade-in_300ms_ease-out] grid-cols-1 gap-3 transition-opacity duration-300 ease-out sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ${
+          className={`grid grid-cols-1 gap-3 transition-opacity duration-300 ease-out sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ${
             isPlaceholderData ? "opacity-40" : "opacity-100"
           }`}
         >

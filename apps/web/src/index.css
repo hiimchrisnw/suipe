@@ -101,3 +101,24 @@ body {
     scale: 1;
   }
 }
+
+/* Keyboard focus has to be visible on both the dark browse surface and the light upload panel,
+   so the ring takes the element's own text colour. */
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Everything here leans on motion; honour a request for less of it. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore-start lint/complexity/noImportantStyles: has to beat the utility classes that
+       set these durations, which is the standard way to honour this preference */
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    /* biome-ignore-end lint/complexity/noImportantStyles: see above */
+  }
+}
