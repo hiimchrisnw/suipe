@@ -17,6 +17,18 @@ function buildEmotionsUrl(next: string[]): string {
   return url.pathname + url.search
 }
 
+// The exported crosses carry a baked-in white stroke, so an <img> can't follow the theme. Masking
+// keeps Figma's exact geometry while the colour comes from the element's own text colour.
+function CrossMark({ src, className }: { src: string; className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{ maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }}
+      className={`cross-mark inline-block bg-current [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain] ${className ?? ""}`}
+    />
+  )
+}
+
 // The row sits at the bar's size, shrinking only when long traits would overrun the content width.
 const ROW_FONT_PX = 16
 const MIN_ROW_FONT_PX = 10.5
@@ -138,7 +150,7 @@ export function TraitMenu() {
           aria-label={`Remove ${emotion}`}
         >
           {emotion}
-          <img src={crossIcon} alt="" className="h-[0.73em] w-[0.74em] opacity-30" />
+          <CrossMark src={crossIcon} className="h-[0.73em] w-[0.74em] opacity-30" />
         </button>
       ))}
 
@@ -154,10 +166,9 @@ export function TraitMenu() {
       >
         {emotions.length === 0 && <span>Filter by traits</span>}
         {/* The asset is a cross; rotating it reads as a plus until the menu is open. */}
-        <img
+        <CrossMark
           src={crossIcon}
-          alt=""
-          className={`transition-transform duration-300 ${"h-[0.73em] w-[0.74em]"} ${isOpen ? "" : "-rotate-45"}`}
+          className={`transition-transform duration-300 h-[0.73em] w-[0.74em] ${isOpen ? "" : "-rotate-45"}`}
         />
       </button>
 
@@ -166,7 +177,7 @@ export function TraitMenu() {
       {createPortal(
         <div
           aria-hidden="true"
-          className={`fixed inset-0 z-40 hidden bg-ink/90 transition-opacity duration-300 ease-out will-change-[opacity] md:block ${
+          className={`fixed inset-0 z-40 hidden bg-[var(--color-ink-veil)] transition-opacity duration-300 ease-out will-change-[opacity] md:block ${
             isOpen ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         />,
@@ -205,7 +216,7 @@ export function TraitMenu() {
                   <span
                     aria-hidden="true"
                     className={`pointer-events-none absolute -inset-px border transition-[border-radius,border-color] duration-150 ease-out ${
-                      isSelected ? "rounded-[64px] border-white" : "rounded-none border-transparent"
+                      isSelected ? "rounded-[64px] border-paper" : "rounded-none border-transparent"
                     }`}
                   />
                   <span className="shrink-0 font-light font-mono text-[13px] leading-none tracking-[0.01em] opacity-40 tabular-nums lg:text-[16px]">
@@ -213,9 +224,8 @@ export function TraitMenu() {
                   </span>
                   {tag}
                   {isSelected && (
-                    <img
+                    <CrossMark
                       src={crossThinIcon}
-                      alt=""
                       className="relative ml-auto size-[clamp(15px,3.8vw,30px)] shrink-0 opacity-30 lg:size-[clamp(18px,1.8vw,34px)]"
                     />
                   )}

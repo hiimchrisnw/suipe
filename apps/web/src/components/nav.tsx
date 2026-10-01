@@ -1,9 +1,12 @@
-import { useCallback } from "react"
+import { Moon, Sun } from "lucide-react"
+import { useCallback, useSyncExternalStore } from "react"
 import { navigate, usePathname } from "../lib/router"
+import { getTheme, subscribeTheme, toggleTheme } from "../lib/theme"
 import { TraitMenu } from "./browse/trait-menu"
 
 export function Nav() {
   const pathname = usePathname()
+  const theme = useSyncExternalStore(subscribeTheme, getTheme, () => "dark" as const)
 
   // React 19 callback ref cleanup — the menu fills from the bar's bottom edge down. On phones the
   // bar sticks with its first row above the viewport, so that edge moves as the page scrolls.
@@ -32,7 +35,7 @@ export function Nav() {
     // relative: the trait menu drops out of the centre cell and spans the full page width.
     <nav
       ref={navRef}
-      className="sticky top-[-52px] z-50 relative grid grid-cols-2 items-center gap-y-8 px-4 pt-6 pb-7 font-semibold text-base bg-ink/90 tracking-[-0.03em] text-paper backdrop-blur-md data-[menu-open=true]:bg-ink data-[menu-open=true]:backdrop-blur-none md:top-0 md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
+      className="sticky top-[-52px] z-50 relative grid grid-cols-2 items-center gap-y-8 px-4 pt-6 pb-7 font-semibold text-base bg-[var(--color-ink-veil)] tracking-[-0.03em] text-paper backdrop-blur-md data-[menu-open=true]:bg-ink data-[menu-open=true]:backdrop-blur-none md:top-0 md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
     >
       <a href="/" onClick={(e) => handleClick(e, "/")} className="justify-self-start">
         suipe
@@ -49,6 +52,18 @@ export function Nav() {
         <a href="/faves" onClick={(e) => handleClick(e, "/faves")} className="hover:opacity-70">
           faves
         </a>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          className="flex size-[2.06em] shrink-0 cursor-pointer items-center justify-center rounded-full border border-paper/30 hover:opacity-70"
+        >
+          {theme === "dark" ? (
+            <Sun className="size-[0.85em]" />
+          ) : (
+            <Moon className="size-[0.85em]" />
+          )}
+        </button>
       </div>
     </nav>
   )

@@ -53,7 +53,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         {/* The inner hairline follows the same peel. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[16px] border border-white/10 transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
+          className="pointer-events-none absolute inset-0 rounded-[16px] border border-paper/10 transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
         />
       </button>
 

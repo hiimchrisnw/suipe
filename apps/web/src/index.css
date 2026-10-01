@@ -9,6 +9,10 @@
   --color-paper: #f3f3f3;
   --color-rule: #393939;
 
+  /* Tailwind's /90 modifier resolves to oklab, which fades on a different curve from the solid
+     page behind it — the two surfaces visibly diverge mid-switch. This keeps both in sRGB. */
+  --color-ink-veil: rgb(19 19 19 / 0.9);
+
   /* Sampled from a real spring (stiffness 330, damping 25, mass 1) — overshoots ~5% and settles,
      the way Pigment's heart does. The soft one (150/30) is for the burst. */
   --ease-spring: linear(
@@ -75,6 +79,22 @@
   );
 }
 
+/* Light keeps the same roles: ink is the surface, paper is what sits on it, rule draws the grid. */
+:root[data-theme="light"] {
+  --color-ink: #f7f7f7;
+  --color-paper: #15171a;
+  --color-rule: #dcdcdc;
+  --color-ink-veil: rgb(247 247 247 / 0.9);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 body {
   font-weight: 300;
   background-color: var(--color-ink);
@@ -122,4 +142,24 @@ body {
     transition-duration: 0.01ms !important;
     /* biome-ignore-end lint/complexity/noImportantStyles: see above */
   }
+}
+
+/* Only while a theme switch is in flight — a standing transition on everything would make every
+   hover feel laggy and would repaint far more often than this does. */
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  /* biome-ignore-start lint/complexity/noImportantStyles: has to win over each element's own
+     transition for the length of the switch */
+  transition:
+    background-color 320ms ease,
+    border-color 320ms ease !important;
+  /* biome-ignore-end lint/complexity/noImportantStyles: see above */
+}
+
+/* The masked icons take their colour from background-color, which would otherwise fade them out
+   of step with the type they sit beside. */
+:root.theme-switching .cross-mark {
+  /* biome-ignore lint/complexity/noImportantStyles: overrides the blanket rule above */
+  transition: none !important;
 }
