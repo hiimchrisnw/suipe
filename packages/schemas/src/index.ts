@@ -9,4 +9,10 @@ export const healthResponseSchema = z.object({
 })
 
 export type { InsertSwipe, MediaType, SourceType, Swipe } from "./swipe"
-export { insertSwipeSchema, mediaTypeSchema, sourceTypeSchema, swipeSchema } from "./swipe"
+export {
+  insertSwipeSchema,
+  MAX_TRAITS,
+  mediaTypeSchema,
+  sourceTypeSchema,
+  swipeSchema,
+} from "./swipe"

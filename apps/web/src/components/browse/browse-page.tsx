@@ -1,12 +1,12 @@
 import type { Swipe } from "@suipe/schemas"
 import { useCallback, useState } from "react"
+import { useSelectedTraits } from "../../hooks/use-selected-traits"
 import { useSwipes } from "../../hooks/use-swipes"
-import { useSearchParamArray } from "../../lib/router"
 import { SwipeCard } from "./swipe-card"
 import { SwipeModal } from "./swipe-modal"
 
 export function BrowsePage() {
-  const emotions = useSearchParamArray("emotions")
+  const emotions = useSelectedTraits()
   const { data, isLoading, isPlaceholderData, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useSwipes(emotions.length > 0 ? emotions : undefined)
   const [selected, setSelected] = useState<Swipe | null>(null)

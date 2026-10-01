@@ -1,4 +1,5 @@
 import type { Swipe } from "@suipe/schemas"
+import { MAX_TRAITS } from "@suipe/schemas"
 import { ExternalLink, Trash2, X } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
 import { createPortal } from "react-dom"
@@ -32,6 +33,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
   const [tags, setTags] = useState(swipe.tags)
   const [tagSearch, setTagSearch] = useState("")
   const [tagInputOpen, setTagInputOpen] = useState(false)
+  const isAtTraitLimit = tags.length >= MAX_TRAITS
   const tagInputRef = useRef<HTMLInputElement>(null)
   const { data: allTags } = useTags()
 
@@ -130,12 +132,14 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                   setTagSearch("")
                   requestAnimationFrame(() => tagInputRef.current?.focus())
                 }}
-                className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-dashed border-gray-300 px-4 text-base font-normal text-gray-400 hover:border-gray-400 hover:text-gray-600"
+                // Swipes from before the cap can sit above it; removing traits unlocks this again.
+                disabled={isAtTraitLimit}
+                className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-gray-300 border-dashed px-4 text-base font-normal text-gray-400 hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:text-gray-400"
               >
                 <span className="text-2xl font-extralight leading-[0]">+</span>
                 <span>Add a trait</span>
               </button>
-              {tagInputOpen && (
+              {tagInputOpen && !isAtTraitLimit && (
                 <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg md:right-auto md:w-64">
                   <div className="p-2">
                     <input

@@ -1,5 +1,8 @@
 import { z } from "zod"
 
+// A recipe — and a swipe's own traits — are capped at three.
+export const MAX_TRAITS = 3
+
 export const mediaTypeSchema = z.enum(["image", "gif", "video"])
 
 export type MediaType = z.infer<typeof mediaTypeSchema>

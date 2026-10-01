@@ -28,7 +28,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         type="button"
         onClick={() => onSelect(swipe)}
         // overflow-hidden clips the focus ring's huge shadow — and every corner — to the tile.
-        className="absolute inset-0 z-10 cursor-pointer overflow-hidden rounded-[20px] text-left transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
+        className="absolute inset-0 z-10 cursor-pointer overflow-hidden rounded-[16px] text-left transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
       >
         {swipe.mediaType === "video" ? (
           <video
@@ -53,7 +53,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         {/* The inner hairline follows the same peel. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[20px] border border-white/20 transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
+          className="pointer-events-none absolute inset-0 rounded-[16px] border border-white/20 transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
         />
       </button>
 

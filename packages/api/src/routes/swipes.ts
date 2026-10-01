@@ -1,3 +1,4 @@
+import { MAX_TRAITS } from "@suipe/schemas"
 import { type AnyColumn, and, desc, eq, like, or, sql } from "drizzle-orm"
 import { Hono } from "hono"
 import { createDb, schema } from "../db"
@@ -111,6 +112,9 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       console.log("[/swipes/upload] json body:", JSON.stringify(body))
 
       const normalizedTags = (body.tags ?? []).map(toSentenceCase)
+      if (normalizedTags.length > MAX_TRAITS) {
+        return c.json({ error: `A swipe can carry at most ${MAX_TRAITS} traits` }, 400)
+      }
       const focalX = parseFocalCoord(body.focalX)
       const focalY = parseFocalCoord(body.focalY)
 
@@ -206,6 +210,9 @@ const swipes = new Hono<{ Bindings: Bindings }>()
     if (tags === null) {
       return c.json({ error: "tags must be a JSON array of strings" }, 400)
     }
+    if (tags.length > MAX_TRAITS) {
+      return c.json({ error: `A swipe can carry at most ${MAX_TRAITS} traits` }, 400)
+    }
 
     const ext = file.name.split(".").pop() ?? "bin"
     const key = `${crypto.randomUUID()}.${ext}`
@@ -248,7 +255,22 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       ) {
         return c.json({ error: "tags must be an array of strings" }, 400)
       }
-      patch.tags = JSON.stringify(body.tags.map(toSentenceCase))
+
+      const nextTags = body.tags.map(toSentenceCase)
+      if (nextTags.length > MAX_TRAITS) {
+        const [current] = await db
+          .select({ tags: schema.swipes.tags })
+          .from(schema.swipes)
+          .where(eq(schema.swipes.id, id))
+        if (!current) return c.json({ error: "Swipe not found" }, 404)
+
+        // Swipes predating the cap keep their traits; only growing the list is refused.
+        const currentCount = (JSON.parse(current.tags) as string[]).length
+        if (nextTags.length > currentCount) {
+          return c.json({ error: `A swipe can carry at most ${MAX_TRAITS} traits` }, 400)
+        }
+      }
+      patch.tags = JSON.stringify(nextTags)
     }
 
     if (body.focalX !== undefined) patch.focalX = parseFocalCoord(body.focalX)

@@ -1,8 +1,10 @@
+import { MAX_TRAITS } from "@suipe/schemas"
 import { useCallback, useEffect, useState } from "react"
 import crossIcon from "../../assets/cross.svg"
 import crossThinIcon from "../../assets/cross-thin.svg"
+import { useSelectedTraits } from "../../hooks/use-selected-traits"
 import { useTags } from "../../hooks/use-tags"
-import { navigate, useSearchParamArray } from "../../lib/router"
+import { navigate } from "../../lib/router"
 
 function buildEmotionsUrl(next: string[]): string {
   const url = new URL(window.location.href)
@@ -14,11 +16,8 @@ function buildEmotionsUrl(next: string[]): string {
   return url.pathname + url.search
 }
 
-// A recipe is three traits — past that the remaining traits dim out.
-const MAX_TRAITS = 3
-
 export function TraitMenu() {
-  const emotions = useSearchParamArray("emotions")
+  const emotions = useSelectedTraits()
   const [isOpen, setIsOpen] = useState(false)
   const { data: allTags } = useTags()
 
@@ -78,7 +77,9 @@ export function TraitMenu() {
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className={`flex shrink-0 items-center justify-center gap-[7px] rounded-full border text-paper hover:opacity-70 ${
+        // At the cap there is nothing left to add, but the menu must still be closable.
+        disabled={emotions.length >= MAX_TRAITS && !isOpen}
+        className={`flex shrink-0 items-center justify-center gap-[7px] rounded-full border text-paper hover:opacity-70 disabled:opacity-30 disabled:hover:opacity-30 ${
           emotions.length > 0
             ? "border-paper size-[33px]"
             : "border-paper/30 border-dashed px-[14px] py-[3.5px]"
