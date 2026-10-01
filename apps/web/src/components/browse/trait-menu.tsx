@@ -186,18 +186,18 @@ export function TraitMenu() {
 
       {/* Always mounted inside a clipping wrapper so the panel can slide both ways. */}
       <div
-        className={`absolute inset-x-4 top-full z-40 overflow-hidden md:inset-x-7 ${
+        className={`absolute inset-x-0 top-full z-40 overflow-hidden ${
           isOpen ? "" : "pointer-events-none"
         }`}
         inert={!isOpen}
       >
         <div
-          className={`h-[calc(100dvh-var(--nav-h,120px))] overflow-hidden bg-ink pb-4 transition-transform duration-300 ease-out will-change-transform md:h-auto md:overflow-visible md:pb-7 ${
+          className={`h-[calc(100dvh-var(--nav-h,120px))] overflow-hidden rounded-b-[28px] bg-ink pb-4 transition-transform duration-300 ease-out will-change-transform md:h-auto md:overflow-visible md:pb-7 ${
             isOpen ? "translate-y-0" : "-translate-y-full"
           }`}
         >
           {/* A rule-coloured bed showing through 1px gaps: one crisp line everywhere, no doubling. */}
-          <div className="grid h-full grid-flow-col grid-cols-2 grid-rows-8 gap-px bg-rule p-px md:h-auto lg:grid-cols-4 lg:grid-rows-4">
+          <div className="mx-4 grid h-full grid-flow-col grid-cols-2 grid-rows-8 gap-px rounded-[28px] bg-rule p-px md:mx-7 [&>*:first-child]:rounded-tl-[27px] [&>*:last-child]:rounded-br-[27px] [&>*:nth-child(8)]:rounded-bl-[27px] [&>*:nth-child(9)]:rounded-tr-[27px] md:h-auto lg:grid-cols-4 lg:grid-rows-4 lg:[&>*:nth-child(13)]:rounded-tr-[27px] lg:[&>*:nth-child(4)]:rounded-bl-[27px] lg:[&>*:nth-child(8)]:rounded-none lg:[&>*:nth-child(9)]:rounded-none">
             {(allTags ?? []).map((tag, index) => {
               const isSelected = emotions.includes(tag)
               const isBlocked = !isSelected && emotions.length >= MAX_TRAITS
@@ -207,7 +207,7 @@ export function TraitMenu() {
                   type="button"
                   onClick={() => handleToggleTag(tag)}
                   disabled={isBlocked}
-                  className={`relative flex items-center gap-[8px] bg-ink px-3 py-3 text-left font-semibold text-[clamp(14px,4.4vw,44px)] tracking-[-0.03em] transition-colors duration-200 md:px-5 md:py-5 lg:gap-[10px] lg:px-7 lg:py-6 lg:text-[clamp(26px,2.8vw,58px)] ${
+                  className={`group/cell relative flex items-center gap-[8px] bg-ink px-3 py-3 text-left font-semibold text-[clamp(14px,4.4vw,44px)] tracking-[-0.03em] transition-colors duration-200 md:px-5 md:py-5 lg:gap-[10px] lg:px-7 lg:py-6 lg:text-[clamp(26px,2.8vw,58px)] ${
                     isSelected ? "z-10" : ""
                   } ${isBlocked ? "text-paper/30" : "text-paper"}`}
                   aria-pressed={isSelected}
@@ -215,8 +215,14 @@ export function TraitMenu() {
                   {/* The pill: radius and colour animate in over the cell's own rules. */}
                   <span
                     aria-hidden="true"
-                    className={`pointer-events-none absolute -inset-px border transition-[border-radius,border-color] duration-150 ease-out ${
-                      isSelected ? "rounded-[64px] border-paper" : "rounded-none border-transparent"
+                    className={`pointer-events-none absolute -inset-px transform-gpu border transition-[border-radius,border-color] duration-150 ease-out ${
+                      isSelected
+                        ? "rounded-[64px] border-paper"
+                        : `rounded-none border-transparent ${
+                            isBlocked
+                              ? ""
+                              : "md:group-hover/cell:rounded-[28px] md:group-hover/cell:border-rule"
+                          }`
                     }`}
                   />
                   <span className="shrink-0 font-light font-mono text-[13px] leading-none tracking-[0.01em] opacity-40 tabular-nums lg:text-[16px]">
