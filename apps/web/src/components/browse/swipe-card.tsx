@@ -61,7 +61,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         type="button"
         onClick={() => toggleLike(swipe.id)}
         aria-pressed={isLiked}
-        aria-label={isLiked ? "Remove from saves" : "Save"}
+        aria-label={isLiked ? "Remove from faves" : "Fave"}
         // Rides in with the corner, and stays put once liked.
         className="pointer-events-none absolute top-[3px] right-[3px] z-0 translate-x-[-16px] translate-y-[16px] scale-75 cursor-pointer opacity-0 transition-[translate,scale,opacity] duration-[553ms] ease-spring group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-data-[liked=true]:pointer-events-auto group-data-[liked=true]:translate-x-0 group-data-[liked=true]:translate-y-0 group-data-[liked=true]:scale-100 group-data-[liked=true]:opacity-100"
       >

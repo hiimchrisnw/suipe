@@ -5,17 +5,22 @@ import { TraitMenu } from "./browse/trait-menu"
 export function Nav() {
   const pathname = usePathname()
 
-  // React 19 callback ref cleanup — the menu sizes itself against the bar's real height, which
-  // changes between the one-row desktop layout and the two-row mobile one.
+  // React 19 callback ref cleanup — the menu fills from the bar's bottom edge down. On phones the
+  // bar sticks with its first row above the viewport, so that edge moves as the page scrolls.
   const navRef = useCallback((el: HTMLElement | null) => {
     if (!el) return
     const publish = () => {
-      document.documentElement.style.setProperty("--nav-h", `${el.offsetHeight}px`)
+      const bottom = Math.max(0, el.getBoundingClientRect().bottom)
+      document.documentElement.style.setProperty("--nav-h", `${bottom}px`)
     }
     publish()
     const observer = new ResizeObserver(publish)
     observer.observe(el)
-    return () => observer.disconnect()
+    window.addEventListener("scroll", publish, { passive: true })
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("scroll", publish)
+    }
   }, [])
 
   function handleClick(e: React.MouseEvent<HTMLAnchorElement>, path: string) {
@@ -27,7 +32,7 @@ export function Nav() {
     // relative: the trait menu drops out of the centre cell and spans the full page width.
     <nav
       ref={navRef}
-      className="sticky top-0 z-50 relative grid grid-cols-2 items-center gap-y-5 px-4 pt-6 pb-7 font-semibold text-base bg-ink/90 tracking-[-0.04em] text-paper backdrop-blur-md md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
+      className="sticky top-[-56px] z-50 relative grid grid-cols-2 items-center gap-y-5 px-4 pt-6 pb-7 font-semibold text-base bg-ink/90 tracking-[-0.04em] text-paper backdrop-blur-md md:top-0 md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
     >
       <a href="/" onClick={(e) => handleClick(e, "/")} className="justify-self-start">
         suipe
@@ -41,8 +46,8 @@ export function Nav() {
         <a href="/upload" onClick={(e) => handleClick(e, "/upload")} className="hover:opacity-70">
           upload
         </a>
-        <a href="/saves" onClick={(e) => handleClick(e, "/saves")} className="hover:opacity-70">
-          saves
+        <a href="/faves" onClick={(e) => handleClick(e, "/faves")} className="hover:opacity-70">
+          faves
         </a>
       </div>
     </nav>
