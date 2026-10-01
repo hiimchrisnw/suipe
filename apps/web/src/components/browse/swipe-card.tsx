@@ -67,7 +67,9 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
       >
         <Heart
           className={`size-6 ${
-            isLiked ? "animate-[heart-pulse_320ms_ease-out] fill-current text-paper" : "text-paper"
+            isLiked
+              ? "animate-[heart-pulse_320ms_ease-out] fill-current text-[#ff5247]"
+              : "text-paper"
           }`}
           strokeWidth={1.5}
         />

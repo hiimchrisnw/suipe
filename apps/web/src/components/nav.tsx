@@ -35,7 +35,7 @@ export function Nav() {
     // relative: the trait menu drops out of the centre cell and spans the full page width.
     <nav
       ref={navRef}
-      className="sticky top-[-52px] z-50 relative grid grid-cols-2 items-center gap-y-8 px-4 pt-6 pb-7 font-semibold text-base bg-[var(--color-ink-veil)] tracking-[-0.03em] text-paper backdrop-blur-md data-[menu-open=true]:bg-ink data-[menu-open=true]:backdrop-blur-none md:top-0 md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
+      className="sticky top-[-52px] z-50 relative grid grid-cols-2 items-center gap-y-8 px-4 pt-6 pb-7 font-semibold text-base bg-[var(--color-ink-veil)] tracking-[-0.02em] text-paper backdrop-blur-md data-[menu-open=true]:bg-ink data-[menu-open=true]:backdrop-blur-none md:top-0 md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
     >
       <a href="/" onClick={(e) => handleClick(e, "/")} className="justify-self-start">
         suipe
