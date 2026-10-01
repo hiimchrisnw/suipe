@@ -1,5 +1,5 @@
 import type { Swipe } from "@suipe/schemas"
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query"
 
 const LIMIT = 30
 
@@ -9,6 +9,7 @@ export function useSwipes(tags?: string[]) {
 
   return useInfiniteQuery({
     queryKey: ["swipes", tagKey] as const,
+    placeholderData: keepPreviousData,
     initialPageParam: 0,
     queryFn: async ({ pageParam }: { pageParam: number }): Promise<Swipe[]> => {
       const url = new URL("/swipes", import.meta.env.VITE_API_URL)

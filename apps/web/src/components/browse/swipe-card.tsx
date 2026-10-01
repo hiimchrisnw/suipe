@@ -1,7 +1,9 @@
 import type { Swipe } from "@suipe/schemas"
-import { useEffect, useRef } from "react"
+import { Heart } from "lucide-react"
+import { useCallback, useRef, useSyncExternalStore } from "react"
 import { useIsVisible } from "../../hooks/use-is-visible"
 import { getMediaUrl } from "../../lib/image-url"
+import { isLiked as readLiked, subscribeLikes, toggleLike } from "../../lib/likes"
 
 interface SwipeCardProps {
   swipe: Swipe
@@ -11,55 +13,67 @@ interface SwipeCardProps {
 // Module-level constant — referentially stable, never re-triggers subscription
 const OBSERVER_OPTIONS: IntersectionObserverInit = { rootMargin: "200px", threshold: 0 }
 
-// Constant-pixel hover lift expressed as scale. 4px total (2 per side).
-const HOVER_DELTA_PX = 4
-
 export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
   const url = getMediaUrl(swipe)
-  const cardRef = useRef<HTMLButtonElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const isVisible = useIsVisible(cardRef, OBSERVER_OPTIONS)
+  const getLiked = useCallback(() => readLiked(swipe.id), [swipe.id])
+  const isLiked = useSyncExternalStore(subscribeLikes, getLiked, () => false)
   const objectPosition = `${swipe.focalX ?? 50}% ${swipe.focalY ?? 50}%`
 
-  // legitimate-useeffect: subscribing to ResizeObserver so hover scale tracks measured card height
-  useEffect(() => {
-    const el = cardRef.current
-    if (!el) return
-    const update = () => {
-      const h = el.offsetHeight
-      if (h > 0) el.style.setProperty("--hover-scale", String(1 + HOVER_DELTA_PX / h))
-    }
-    update()
-    const observer = new ResizeObserver(update)
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <button
-      ref={cardRef}
-      type="button"
-      onClick={() => onSelect(swipe)}
-      className="relative aspect-square w-full cursor-pointer text-left md:transition-transform md:duration-300 md:ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:scale-[var(--hover-scale,1.02)]"
-    >
-      {swipe.mediaType === "video" ? (
-        <video
-          src={isVisible ? url : ""}
-          muted
-          autoPlay
-          loop
-          playsInline
-          style={{ objectPosition }}
-          className="h-full w-full rounded-lg object-cover ring-1 ring-gray-200"
+    // A plain wrapper: the tile and the heart are separate buttons, which a button cannot nest.
+    <div ref={cardRef} data-liked={isLiked} className="group relative isolate aspect-square w-full">
+      <button
+        type="button"
+        onClick={() => onSelect(swipe)}
+        // overflow-hidden clips the focus ring's huge shadow — and every corner — to the tile.
+        className="absolute inset-0 z-10 cursor-pointer overflow-hidden rounded-[20px] text-left transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
+      >
+        {swipe.mediaType === "video" ? (
+          <video
+            src={isVisible ? url : ""}
+            muted
+            autoPlay
+            loop
+            playsInline
+            style={{ objectPosition }}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <img
+            src={url}
+            alt={swipe.description ?? ""}
+            loading="lazy"
+            style={{ objectPosition }}
+            className="h-full w-full object-cover"
+          />
+        )}
+
+        {/* The inner hairline follows the same peel. */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-[20px] border border-white/20 transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
         />
-      ) : (
-        <img
-          src={url}
-          alt={swipe.description ?? ""}
-          loading="lazy"
-          style={{ objectPosition }}
-          className="h-full w-full rounded-lg object-cover ring-1 ring-gray-200"
+      </button>
+
+      <button
+        type="button"
+        onClick={() => toggleLike(swipe.id)}
+        aria-pressed={isLiked}
+        aria-label={isLiked ? "Remove from saves" : "Save"}
+        // Rides in with the corner, and stays put once liked.
+        className="pointer-events-none absolute top-0 right-0 z-0 translate-x-[-16px] translate-y-[16px] scale-75 cursor-pointer opacity-0 transition-[translate,scale,opacity] duration-[553ms] ease-spring group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-data-[liked=true]:pointer-events-auto group-data-[liked=true]:translate-x-0 group-data-[liked=true]:translate-y-0 group-data-[liked=true]:scale-100 group-data-[liked=true]:opacity-100"
+      >
+        <Heart
+          className={`size-6 ${
+            isLiked
+              ? "animate-[heart-pulse_320ms_ease-out] fill-current text-[#ea465a]"
+              : "text-paper"
+          }`}
+          strokeWidth={1.5}
         />
-      )}
-    </button>
+      </button>
+    </div>
   )
 }

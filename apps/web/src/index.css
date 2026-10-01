@@ -2,9 +2,102 @@
 
 @theme {
   --font-sans: "Geist", sans-serif;
+
+  /* Browse surface — dark shell from the Figma redesign. */
+  --color-ink: #131313;
+  --color-paper: #f3f3f3;
+  --color-rule: #393939;
+
+  /* Sampled from a real spring (stiffness 330, damping 25, mass 1) — overshoots ~5% and settles,
+     the way Pigment's heart does. The soft one (150/30) is for the burst. */
+  --ease-spring: linear(
+    0,
+    0.0543,
+    0.1824,
+    0.3427,
+    0.5065,
+    0.6561,
+    0.7819,
+    0.8807,
+    0.9529,
+    1.0018,
+    1.0314,
+    1.0463,
+    1.0508,
+    1.0484,
+    1.0421,
+    1.0341,
+    1.0257,
+    1.018,
+    1.0115,
+    1.0064,
+    1.0026,
+    1.0001,
+    0.9985,
+    0.9977,
+    0.9974,
+    0.9975,
+    0.9978,
+    0.9982,
+    0.9987
+  );
+  --ease-spring-soft: linear(
+    0,
+    0.0259,
+    0.0882,
+    0.1699,
+    0.2594,
+    0.3495,
+    0.4355,
+    0.5151,
+    0.5868,
+    0.6504,
+    0.7059,
+    0.7538,
+    0.7949,
+    0.8297,
+    0.8592,
+    0.8839,
+    0.9045,
+    0.9216,
+    0.9359,
+    0.9476,
+    0.9573,
+    0.9652,
+    0.9718,
+    0.9771,
+    0.9814,
+    0.985,
+    0.9879,
+    0.9902,
+    0.9921
+  );
 }
 
 body {
   font-weight: 300;
-  background-color: #e4dfdb;
+  background-color: var(--color-ink);
+}
+
+/* Filter changes swap the whole result set at once; fading the new set in softens the jump. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* A single beat when a swipe is liked. */
+@keyframes heart-pulse {
+  0% {
+    scale: 1;
+  }
+  45% {
+    scale: 1.28;
+  }
+  100% {
+    scale: 1;
+  }
 }
