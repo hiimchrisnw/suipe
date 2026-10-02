@@ -168,6 +168,43 @@ function pageFetchError(status: number): PageFetchError {
   )
 }
 
+// Collect UI's og:image is a generated share card (its generator currently 502s), but the card
+// URL carries the design it was asked to render in an imageUrl parameter.
+const COLLECTUI_HOSTS = new Set(["collectui.com", "www.collectui.com"])
+
+async function fetchCollectUiMedia(url: string): Promise<FetchUrlResult | null> {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return null
+  }
+  if (!COLLECTUI_HOSTS.has(parsed.hostname)) return null
+
+  const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; Suipe/1.0)" } })
+  if (!res.ok) throw pageFetchError(res.status)
+
+  const html = await res.text()
+  const card = extractMetaContent(html, "og:image") ?? extractMetaContent(html, "twitter:image")
+  if (!card) return null
+
+  let embedded: string | null = null
+  try {
+    embedded = new URL(card).searchParams.get("imageUrl")
+  } catch {
+    return null
+  }
+  if (!embedded) return null
+
+  // What the card embeds is a still; the clip itself sits beside it without the thumbnail suffix.
+  if (embedded.includes("-optimized-thumbnail.")) {
+    const clip = await verifyMediaUrl(embedded.replace("-optimized-thumbnail.", "-optimized."))
+    if (clip.mimeType.startsWith("video/")) return clip
+  }
+
+  return await verifyMediaUrl(embedded)
+}
+
 // A page that renders its media client-side may need several tries before a request lands on a
 // backend that returns fully rendered HTML. Measured against Savee: ~50% of cold requests return
 // the shell, so a handful of spaced attempts turns a coin flip into a near-certainty.
@@ -242,6 +279,9 @@ async function fetchRecentDesignMedia(url: string): Promise<FetchUrlResult | nul
 export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
   const recent = await fetchRecentDesignMedia(url)
   if (recent) return recent
+
+  const collectUi = await fetchCollectUiMedia(url)
+  if (collectUi) return collectUi
 
   const ext = getExtensionFromUrl(url)
   if (ext) {
