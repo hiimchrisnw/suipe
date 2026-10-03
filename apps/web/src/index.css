@@ -167,15 +167,18 @@ body {
 /* A selected corner cell opens the bed's matching corner to the pill's radius (1px larger, since
    the bed sits a pixel outside the cell). Written here because Tailwind won't compile a :has()
    arbitrary variant. */
-.trait-bed:has(> [aria-pressed="true"]:first-child) {
-  border-top-left-radius: 65px;
+/* Phones run the grid square and edge to edge, so there are no outer corners to open. */
+@media (width >= 48rem) {
+  .trait-bed:has(> [aria-pressed="true"]:first-child) {
+    border-top-left-radius: 65px;
+  }
+
+  .trait-bed:has(> [aria-pressed="true"]:last-child) {
+    border-bottom-right-radius: 65px;
+  }
 }
 
-.trait-bed:has(> [aria-pressed="true"]:last-child) {
-  border-bottom-right-radius: 65px;
-}
-
-@media (width < 64rem) {
+@media (48rem <= width < 64rem) {
   .trait-bed:has(> [aria-pressed="true"]:nth-child(8)) {
     border-bottom-left-radius: 65px;
   }

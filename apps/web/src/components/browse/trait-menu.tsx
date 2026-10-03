@@ -211,12 +211,12 @@ export function TraitMenu() {
         inert={!isOpen}
       >
         <div
-          className={`h-[calc(100dvh-var(--nav-h,120px))] overflow-hidden rounded-b-[28px] bg-ink pb-4 transition-transform duration-300 ease-out will-change-transform md:h-auto md:overflow-visible md:pb-7 ${
+          className={`h-[calc(100dvh-var(--nav-h,120px))] overflow-hidden bg-ink transition-transform duration-300 ease-out will-change-transform md:h-auto md:overflow-visible md:rounded-b-[28px] md:pb-7 ${
             isOpen ? "translate-y-0" : "-translate-y-full"
           }`}
         >
           {/* A rule-coloured bed showing through 1px gaps: one crisp line everywhere, no doubling. */}
-          <div className="trait-bed mx-4 grid h-full grid-flow-col grid-cols-2 grid-rows-8 gap-px rounded-[28px] bg-rule p-px transition-[border-radius] duration-150 ease-out md:mx-7 [&>*:first-child]:rounded-tl-[27px] [&>*:last-child]:rounded-br-[27px] [&>*:nth-child(8)]:rounded-bl-[27px] [&>*:nth-child(9)]:rounded-tr-[27px] [&>[aria-pressed=true]:first-child]:rounded-tl-[64px] [&>[aria-pressed=true]:last-child]:rounded-br-[64px] [&>[aria-pressed=true]:nth-child(8)]:rounded-bl-[64px] [&>[aria-pressed=true]:nth-child(9)]:rounded-tr-[64px] md:h-auto lg:grid-cols-4 lg:grid-rows-4 lg:[&>*:nth-child(13)]:rounded-tr-[27px] lg:[&>*:nth-child(4)]:rounded-bl-[27px] lg:[&>*:nth-child(8)]:rounded-none lg:[&>*:nth-child(9)]:rounded-none lg:[&>[aria-pressed=true]:nth-child(13)]:rounded-tr-[64px] lg:[&>[aria-pressed=true]:nth-child(4)]:rounded-bl-[64px] lg:[&>[aria-pressed=true]:nth-child(8)]:rounded-none lg:[&>[aria-pressed=true]:nth-child(9)]:rounded-none">
+          <div className="trait-bed grid h-full grid-flow-col grid-cols-2 grid-rows-8 gap-px bg-rule pt-px transition-[border-radius] duration-150 ease-out md:mx-7 md:rounded-[28px] md:p-px md:[&>*:first-child]:rounded-tl-[27px] md:[&>*:last-child]:rounded-br-[27px] md:[&>*:nth-child(8)]:rounded-bl-[27px] md:[&>*:nth-child(9)]:rounded-tr-[27px] md:[&>[aria-pressed=true]:first-child]:rounded-tl-[64px] md:[&>[aria-pressed=true]:last-child]:rounded-br-[64px] md:[&>[aria-pressed=true]:nth-child(8)]:rounded-bl-[64px] md:[&>[aria-pressed=true]:nth-child(9)]:rounded-tr-[64px] md:h-auto lg:grid-cols-4 lg:grid-rows-4 lg:[&>*:nth-child(13)]:rounded-tr-[27px] lg:[&>*:nth-child(4)]:rounded-bl-[27px] lg:[&>*:nth-child(8)]:rounded-none lg:[&>*:nth-child(9)]:rounded-none lg:[&>[aria-pressed=true]:nth-child(13)]:rounded-tr-[64px] lg:[&>[aria-pressed=true]:nth-child(4)]:rounded-bl-[64px] lg:[&>[aria-pressed=true]:nth-child(8)]:rounded-none lg:[&>[aria-pressed=true]:nth-child(9)]:rounded-none">
             {(allTags ?? []).map((tag) => {
               const isSelected = emotions.includes(tag)
               const isBlocked = !isSelected && emotions.length >= MAX_TRAITS
@@ -231,7 +231,7 @@ export function TraitMenu() {
                   type="button"
                   onClick={() => handleToggleTag(tag)}
                   disabled={isBlocked || isDeadEnd}
-                  className={`group/cell relative flex items-center bg-ink px-[0.7em] py-[0.41em] lg:px-[0.48em] text-left font-semibold text-[clamp(14px,min(5vw,calc(4.4dvh-5px)),40px)] tracking-[-0.03em] transition-[color,border-radius] duration-150 ease-out md:text-[clamp(16px,5vw,40px)] lg:text-[clamp(24px,2.55vw,52px)] ${
+                  className={`group/cell relative flex items-center bg-ink px-4 py-[0.41em] md:px-[0.7em] lg:px-[0.48em] text-left font-semibold text-[clamp(14px,min(5vw,calc(4.4dvh-5px)),40px)] tracking-[-0.03em] transition-[color,border-radius] duration-150 ease-out md:text-[clamp(16px,5vw,40px)] lg:text-[clamp(24px,2.55vw,52px)] ${
                     isSelected ? "z-10" : ""
                   } text-paper`}
                   aria-pressed={isSelected}
