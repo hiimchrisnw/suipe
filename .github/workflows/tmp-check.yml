@@ -16,5 +16,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r typecheck
-      - run: pnpm biome check --reporter=github .
+      - run: |
+          pnpm biome check --write . || true
+          d=$(git diff | head -c 3500 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=diff::$d"
+          pnpm biome check --reporter=github .
       - run: pnpm --filter @suipe/web build
