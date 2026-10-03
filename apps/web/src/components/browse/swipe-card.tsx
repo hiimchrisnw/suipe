@@ -11,6 +11,10 @@ interface SwipeCardProps {
   onSelect: (swipe: Swipe) => void
 }
 
+// Icons that fill their whole square read larger than the rest at the same size, so they sit
+// smaller in the circle. Keyed by source domain.
+const SMALLER_ICONS = new Set(["recent.design"])
+
 // Module-level constant — referentially stable, never re-triggers subscription
 const OBSERVER_OPTIONS: IntersectionObserverInit = { rootMargin: "200px", threshold: 0 }
 
@@ -71,7 +75,9 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
               crossOrigin="anonymous"
               onLoad={(e) => setFaviconBg(readIconBackground(e.currentTarget))}
               onError={() => setFaviconFailed(true)}
-              className="size-[18px] object-contain"
+              className={`object-contain ${
+                SMALLER_ICONS.has(sourceDomain) ? "size-[13px]" : "size-[18px]"
+              }`}
             />
           </span>
         )}
