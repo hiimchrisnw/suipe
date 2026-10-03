@@ -1,5 +1,6 @@
 import type { Swipe } from "@suipe/schemas"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { adminFetch } from "../lib/admin"
 import { navigate } from "../lib/router"
 
 interface FileUploadParams {
@@ -57,12 +58,12 @@ export function useUpload() {
         }
         if (params.focalX !== undefined) formData.append("focal_x", String(params.focalX))
         if (params.focalY !== undefined) formData.append("focal_y", String(params.focalY))
-        res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
+        res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
           method: "POST",
           body: formData,
         })
       } else if (isMediaFetchUpload(params)) {
-        res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
+        res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -75,7 +76,7 @@ export function useUpload() {
           }),
         })
       } else {
-        res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
+        res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

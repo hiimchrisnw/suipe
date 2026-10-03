@@ -6,6 +6,7 @@ import { createPortal } from "react-dom"
 import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
 import { useTags } from "../../hooks/use-tags"
 import { useUpdateSwipe } from "../../hooks/use-update-swipe"
+import { useIsAdmin } from "../../lib/admin"
 import { getMediaUrl } from "../../lib/image-url"
 import { FocalPicker } from "../common/focal-picker"
 
@@ -21,6 +22,7 @@ interface SwipeModalProps {
 export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
   const deleteSwipe = useDeleteSwipe()
   const updateSwipe = useUpdateSwipe()
+  const isAdmin = useIsAdmin()
   const url = getMediaUrl(swipe)
 
   const [showVideoControls, setShowVideoControls] = useState(false)
@@ -112,80 +114,84 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                 className="flex h-[34px] items-center gap-1 rounded-full bg-gray-100 px-4 text-base font-normal text-gray-600"
               >
                 {tag}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  aria-label={`Remove tag ${tag}`}
-                  className="opacity-40 hover:opacity-70"
-                >
-                  ×
-                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    aria-label={`Remove tag ${tag}`}
+                    className="opacity-40 hover:opacity-70"
+                  >
+                    ×
+                  </button>
+                )}
               </span>
             ))}
 
             {/* Add tag dropdown */}
-            <div ref={tagDropdownRef} className="static md:relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setTagInputOpen(true)
-                  setTagSearch("")
-                  requestAnimationFrame(() => tagInputRef.current?.focus())
-                }}
-                // Swipes from before the cap can sit above it; removing traits unlocks this again.
-                disabled={isAtTraitLimit}
-                className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-gray-300 border-dashed px-4 text-base font-normal text-gray-400 hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:text-gray-400"
-              >
-                <span className="text-2xl font-extralight leading-[0]">+</span>
-                <span>Add a trait</span>
-              </button>
-              {tagInputOpen && !isAtTraitLimit && (
-                <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg md:right-auto md:w-64">
-                  <div className="p-2">
-                    <input
-                      ref={tagInputRef}
-                      type="text"
-                      value={tagSearch}
-                      onChange={(e) => setTagSearch(e.target.value)}
-                      placeholder="Search traits..."
-                      onKeyDown={(e) => {
-                        if (e.key === "Escape") setTagInputOpen(false)
-                        if (e.key === "Enter") {
-                          e.preventDefault()
-                          const value = toTitleCase(tagSearch.trim())
-                          if (value && !tags.includes(value)) handleAddTag(value)
-                        }
-                      }}
-                      className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-base font-normal outline-none focus:border-gray-400"
-                    />
-                  </div>
-                  <ul className="max-h-56 overflow-y-auto py-1">
-                    {filteredTags.length === 0 ? (
-                      <li className="px-3 py-2 text-base font-normal text-gray-400">
-                        Press Enter to add "{toTitleCase(tagSearch.trim())}"
-                      </li>
-                    ) : (
-                      filteredTags.map((tag) => (
-                        <li key={tag}>
-                          {/* onMouseDown fires before document mousedown (click-outside),
-                              so the tag is committed before the dropdown closes */}
-                          <button
-                            type="button"
-                            onMouseDown={(e) => {
-                              e.preventDefault()
-                              handleAddTag(tag)
-                            }}
-                            className="w-full px-3 py-1.5 text-left text-base font-normal hover:bg-gray-50"
-                          >
-                            {tag}
-                          </button>
+            {isAdmin && (
+              <div ref={tagDropdownRef} className="static md:relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTagInputOpen(true)
+                    setTagSearch("")
+                    requestAnimationFrame(() => tagInputRef.current?.focus())
+                  }}
+                  // Swipes from before the cap can sit above it; removing traits unlocks this again.
+                  disabled={isAtTraitLimit}
+                  className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-gray-300 border-dashed px-4 text-base font-normal text-gray-400 hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:text-gray-400"
+                >
+                  <span className="text-2xl font-extralight leading-[0]">+</span>
+                  <span>Add a trait</span>
+                </button>
+                {tagInputOpen && !isAtTraitLimit && (
+                  <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg md:right-auto md:w-64">
+                    <div className="p-2">
+                      <input
+                        ref={tagInputRef}
+                        type="text"
+                        value={tagSearch}
+                        onChange={(e) => setTagSearch(e.target.value)}
+                        placeholder="Search traits..."
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") setTagInputOpen(false)
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            const value = toTitleCase(tagSearch.trim())
+                            if (value && !tags.includes(value)) handleAddTag(value)
+                          }
+                        }}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-base font-normal outline-none focus:border-gray-400"
+                      />
+                    </div>
+                    <ul className="max-h-56 overflow-y-auto py-1">
+                      {filteredTags.length === 0 ? (
+                        <li className="px-3 py-2 text-base font-normal text-gray-400">
+                          Press Enter to add "{toTitleCase(tagSearch.trim())}"
                         </li>
-                      ))
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
+                      ) : (
+                        filteredTags.map((tag) => (
+                          <li key={tag}>
+                            {/* onMouseDown fires before document mousedown (click-outside),
+                                so the tag is committed before the dropdown closes */}
+                            <button
+                              type="button"
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                handleAddTag(tag)
+                              }}
+                              className="w-full px-3 py-1.5 text-left text-base font-normal hover:bg-gray-50"
+                            >
+                              {tag}
+                            </button>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -227,15 +233,17 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                 className="block h-full w-full rounded-lg object-contain"
               />
             )}
-            <FocalPicker
-              x={focalX}
-              y={focalY}
-              onChange={(x, y) => {
-                setFocalX(x)
-                setFocalY(y)
-              }}
-              onDragEnd={(x, y) => updateSwipe.mutate({ id: swipe.id, focalX: x, focalY: y })}
-            />
+            {isAdmin && (
+              <FocalPicker
+                x={focalX}
+                y={focalY}
+                onChange={(x, y) => {
+                  setFocalX(x)
+                  setFocalY(y)
+                }}
+                onDragEnd={(x, y) => updateSwipe.mutate({ id: swipe.id, focalX: x, focalY: y })}
+              />
+            )}
           </div>
         </div>
 
@@ -252,15 +260,17 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           ) : (
             <span />
           )}
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleteSwipe.isPending}
-            className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-base font-normal text-red-600 hover:border-red-300 hover:bg-red-100"
-          >
-            <Trash2 size={14} />
-            {deleteSwipe.isPending ? "Deleting..." : "Delete"}
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleteSwipe.isPending}
+              className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-base font-normal text-red-600 hover:border-red-300 hover:bg-red-100"
+            >
+              <Trash2 size={14} />
+              {deleteSwipe.isPending ? "Deleting..." : "Delete"}
+            </button>
+          )}
         </div>
       </div>
     </div>,

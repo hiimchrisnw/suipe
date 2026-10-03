@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query"
+import { adminFetch } from "../lib/admin"
 
 interface FetchUrlResult {
   url: string
@@ -8,7 +9,7 @@ interface FetchUrlResult {
 export function useFetchUrl() {
   return useMutation({
     mutationFn: async (url: string): Promise<FetchUrlResult> => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/fetch-url`, {
+      const res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/fetch-url`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
