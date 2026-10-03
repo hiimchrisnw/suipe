@@ -59,9 +59,10 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         {sourceDomain && !faviconFailed && (
           <span
             title={sourceDomain}
-            // The icon sits inset with its own background colour carried out to the rim.
+            // The icon sits inset with its own background colour carried out to the rim. The default fill
+            // is white in both themes, since favicons are drawn for light browser tabs.
             style={faviconBg ? { backgroundColor: faviconBg } : undefined}
-            className="pointer-events-none absolute bottom-2 left-2 flex size-6 items-center justify-center overflow-hidden rounded-full bg-paper ring-1 ring-ink/10"
+            className="pointer-events-none absolute bottom-2 left-2 flex size-6 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-black/10"
           >
             <img
               src={getFaviconUrl(sourceDomain)}
