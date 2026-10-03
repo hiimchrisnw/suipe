@@ -83,9 +83,11 @@ const favicons = new Hono<{ Bindings: Bindings }>().get("/:domain", async (c) =>
 
   // ?debug lists what the site offered and which candidate won, for checking a wrong icon.
   const debug = c.req.query("debug") !== undefined
-  const cache = caches.default
+  // The DOM lib types CacheStorage without the Workers default cache, so it is asserted here.
+  const cache = (caches as unknown as { default: Cache }).default
   const cached = debug ? undefined : await cache.match(c.req.raw)
-  if (cached) return cached
+  // Re-wrapped because cached responses have locked headers, and CORS still needs to add its own.
+  if (cached) return new Response(cached.body, cached)
 
   const candidates: string[] = []
   try {

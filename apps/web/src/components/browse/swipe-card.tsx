@@ -2,6 +2,7 @@ import type { Swipe } from "@suipe/schemas"
 import { Heart } from "lucide-react"
 import { useCallback, useRef, useState, useSyncExternalStore } from "react"
 import { useIsVisible } from "../../hooks/use-is-visible"
+import { readIconBackground } from "../../lib/icon-color"
 import { getFaviconUrl, getMediaUrl, getSourceDomain } from "../../lib/image-url"
 import { isLiked as readLiked, subscribeLikes, toggleLike } from "../../lib/likes"
 
@@ -23,6 +24,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
   const sourceDomain = getSourceDomain(swipe.sourceUrl)
   // A site with no favicon drops the avatar rather than showing a broken image.
   const [faviconFailed, setFaviconFailed] = useState(false)
+  const [faviconBg, setFaviconBg] = useState<string | null>(null)
 
   return (
     // A plain wrapper: the tile and the heart are separate buttons, which a button cannot nest.
@@ -57,14 +59,18 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         {sourceDomain && !faviconFailed && (
           <span
             title={sourceDomain}
+            // The icon sits inset with its own background colour carried out to the rim.
+            style={faviconBg ? { backgroundColor: faviconBg } : undefined}
             className="pointer-events-none absolute bottom-2 left-2 flex size-6 items-center justify-center overflow-hidden rounded-full bg-paper ring-1 ring-ink/10"
           >
             <img
               src={getFaviconUrl(sourceDomain)}
               alt=""
               loading="lazy"
+              crossOrigin="anonymous"
+              onLoad={(e) => setFaviconBg(readIconBackground(e.currentTarget))}
               onError={() => setFaviconFailed(true)}
-              className="size-full object-cover"
+              className="size-4 object-contain"
             />
           </span>
         )}
