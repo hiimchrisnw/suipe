@@ -1,15 +1,20 @@
+import { AdminPage } from "./components/admin-page"
 import { BrowsePage } from "./components/browse/browse-page"
 import { Nav } from "./components/nav"
 import { UploadPage } from "./components/upload/upload-page"
+import { useIsAdmin } from "./lib/admin"
 import { usePathname } from "./lib/router"
 
 export function App() {
   const pathname = usePathname()
+  const isAdmin = useIsAdmin()
 
   return (
     <div className="min-h-screen bg-ink font-light text-paper">
       <Nav />
-      {pathname === "/upload" ? (
+      {pathname === "/admin" ? (
+        <AdminPage />
+      ) : pathname === "/upload" && isAdmin ? (
         // The redesign only covers browse, so upload keeps its light styling on a light surface.
         <div className="mx-4 mb-4 rounded-2xl bg-white text-gray-900 md:mx-7 md:mb-7">
           <UploadPage />

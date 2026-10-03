@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query"
+import { adminFetch } from "../lib/admin"
 
 export function useSuggestTags() {
   return useMutation({
@@ -6,7 +7,7 @@ export function useSuggestTags() {
       const formData = new FormData()
       formData.append("file", file)
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/suggest-tags`, {
+      const res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/suggest-tags`, {
         method: "POST",
         body: formData,
       })

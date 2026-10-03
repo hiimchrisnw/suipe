@@ -1,5 +1,6 @@
 import type { Swipe } from "@suipe/schemas"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { adminFetch } from "../lib/admin"
 
 interface UpdateSwipeParams {
   id: string
@@ -13,7 +14,7 @@ export function useUpdateSwipe() {
 
   return useMutation({
     mutationFn: async ({ id, ...patch }: UpdateSwipeParams): Promise<Swipe> => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/swipes/${id}`, {
+      const res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),

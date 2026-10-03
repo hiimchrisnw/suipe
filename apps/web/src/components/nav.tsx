@@ -1,11 +1,13 @@
 import { Moon, Sun } from "lucide-react"
 import { useCallback, useSyncExternalStore } from "react"
+import { useIsAdmin } from "../lib/admin"
 import { navigate, usePathname } from "../lib/router"
 import { getTheme, subscribeTheme, toggleTheme } from "../lib/theme"
 import { TraitMenu } from "./browse/trait-menu"
 
 export function Nav() {
   const pathname = usePathname()
+  const isAdmin = useIsAdmin()
   const theme = useSyncExternalStore(subscribeTheme, getTheme, () => "dark" as const)
 
   // React 19 callback ref cleanup — the menu fills from the bar's bottom edge down. On phones the
@@ -52,13 +54,15 @@ export function Nav() {
         data-recipe-row
         className="order-last col-span-2 justify-self-center md:order-none md:col-span-1"
       >
-        {pathname === "/upload" ? null : <TraitMenu />}
+        {(pathname === "/upload" && isAdmin) || pathname === "/admin" ? null : <TraitMenu />}
       </div>
 
       <div className="flex items-center gap-4 justify-self-end md:gap-[25px]">
-        <a href="/upload" onClick={(e) => handleClick(e, "/upload")} className="hover:opacity-70">
-          upload
-        </a>
+        {isAdmin && (
+          <a href="/upload" onClick={(e) => handleClick(e, "/upload")} className="hover:opacity-70">
+            upload
+          </a>
+        )}
         <a href="/faves" onClick={(e) => handleClick(e, "/faves")} className="hover:opacity-70">
           faves
         </a>
