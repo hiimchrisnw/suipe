@@ -129,13 +129,27 @@ export function TraitMenu() {
     }
   }, [isOpen])
 
+  // Set when the recipe changes while the menu is down, so closing it lands on the new results
+  // from the top rather than wherever the old grid had been scrolled to.
+  const changedWhileOpen = useRef(false)
+
+  // legitimate-useeffect: runs after the scroll lock above has released the page
+  useEffect(() => {
+    if (isOpen || !changedWhileOpen.current) return
+    changedWhileOpen.current = false
+    // Instant, so the jump happens behind the panel as it slides away rather than in view.
+    window.scrollTo({ top: 0, behavior: "instant" })
+  }, [isOpen])
+
   function handleToggleTag(tag: string) {
+    if (isOpen) changedWhileOpen.current = true
     const next = emotions.includes(tag) ? emotions.filter((e) => e !== tag) : [...emotions, tag]
     // Non-urgent: the pill animation gets the frames first, the grid catches up behind it.
     startTransition(() => navigate(buildEmotionsUrl(next)))
   }
 
   function handleRemoveTag(tag: string) {
+    if (isOpen) changedWhileOpen.current = true
     startTransition(() => navigate(buildEmotionsUrl(emotions.filter((e) => e !== tag))))
   }
 
