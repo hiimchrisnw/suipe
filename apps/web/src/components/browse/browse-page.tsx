@@ -38,6 +38,14 @@ export function BrowsePage() {
 
   return (
     <div className="px-3 pt-6 pb-3 md:px-7 md:pt-8 md:pb-7">
+      {/* Figma 80:2 — 40px semibold, -0.04em, leading-none, with 100px of air before the grid.
+          Tracking is set in em so it holds its ratio at the smaller phone size. */}
+      <h1 className="mt-[28px] mb-[56px] max-w-[928px] font-semibold text-[28px] text-paper leading-none tracking-[-0.04em] md:mt-[68px] md:mb-[100px] md:text-[40px]">
+        {/* The design breaks the line explicitly rather than letting it wrap. Blocks only from md
+            up, so the phone size still wraps to fit whatever width it has. */}
+        <span className="md:block">Product personality moments,</span>{" "}
+        <span className="md:block">curated by emotional trait.</span>
+      </h1>
       {isLoading ? (
         <div className={GRID_CLASS}>
           {Array.from({ length: SKELETON_COUNT }, (_, i) => (
