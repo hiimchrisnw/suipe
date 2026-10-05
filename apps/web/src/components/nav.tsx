@@ -7,6 +7,10 @@ import { getTheme, subscribeTheme, toggleTheme } from "../lib/theme"
 import { PageTitle } from "./browse/page-title"
 import { TraitMenu } from "./browse/trait-menu"
 
+// Parked, not deleted: flip to true to bring the light/dark switch back. Kept as a flag rather
+// than commented out so the markup below stays type-checked and cannot quietly rot.
+const SHOW_THEME_TOGGLE = false
+
 export function Nav() {
   const pathname = usePathname()
   const isAdmin = useIsAdmin()
@@ -84,18 +88,20 @@ export function Nav() {
         <a href="/faves" onClick={(e) => handleClick(e, "/faves")} className="hover:opacity-70">
           faves
         </a>
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          className="flex size-[3.125em] shrink-0 cursor-pointer items-center justify-center rounded-full border border-paper/30 transition-colors duration-150 hover:border-paper/60"
-        >
-          {theme === "dark" ? (
-            <Sun className="size-[1.25em]" strokeWidth={1} />
-          ) : (
-            <Moon className="size-[1.25em]" strokeWidth={1} />
-          )}
-        </button>
+        {SHOW_THEME_TOGGLE && (
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className="flex size-[3.125em] shrink-0 cursor-pointer items-center justify-center rounded-full border border-paper/30 transition-colors duration-150 hover:border-paper/60"
+          >
+            {theme === "dark" ? (
+              <Sun className="size-[1.25em]" strokeWidth={1} />
+            ) : (
+              <Moon className="size-[1.25em]" strokeWidth={1} />
+            )}
+          </button>
+        )}
       </div>
     </nav>
   )
