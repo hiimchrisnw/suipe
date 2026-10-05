@@ -1,14 +1,17 @@
 import { Moon, Sun } from "lucide-react"
 import { useCallback, useSyncExternalStore } from "react"
+import { useIsMobile } from "../hooks/use-is-mobile"
 import { useIsAdmin } from "../lib/admin"
 import { navigate, usePathname } from "../lib/router"
 import { getTheme, subscribeTheme, toggleTheme } from "../lib/theme"
+import { PageTitle } from "./browse/page-title"
 import { TraitMenu } from "./browse/trait-menu"
 
 export function Nav() {
   const pathname = usePathname()
   const isAdmin = useIsAdmin()
   const theme = useSyncExternalStore(subscribeTheme, getTheme, () => "dark" as const)
+  const isMobile = useIsMobile()
 
   // React 19 callback ref cleanup — the menu fills from the bar's bottom edge down. On phones the
   // bar sticks with its first row above the viewport, so that edge moves as the page scrolls.
@@ -50,17 +53,27 @@ export function Nav() {
         suipe
       </a>
 
-      <div
-        data-recipe-row
-        className="order-last col-span-2 justify-self-center md:order-none md:col-span-1"
-      >
-        {/* Filtering only applies to browse; faves has nothing to filter. */}
-        {(pathname === "/upload" && isAdmin) ||
-        pathname === "/admin" ||
-        pathname === "/faves" ? null : (
-          <TraitMenu />
-        )}
-      </div>
+      {/* Filtering only applies to browse; faves has nothing to filter. */}
+      {(pathname === "/upload" && isAdmin) || pathname === "/admin" || pathname === "/faves" ? (
+        <div data-recipe-row className="order-last col-span-2 md:order-none md:col-span-1" />
+      ) : (
+        <>
+          {/* Phones only: the title leads and the chip sits under it. order-2 puts it between the
+              first row and the chip, which keeps the chip as the thing that pins when the bar
+              rides up. */}
+          {isMobile && (
+            <div className="order-2 col-span-2 mt-10 mb-6 justify-self-center">
+              <PageTitle />
+            </div>
+          )}
+          <div
+            data-recipe-row
+            className="order-last col-span-2 justify-self-center md:order-none md:col-span-1"
+          >
+            <TraitMenu />
+          </div>
+        </>
+      )}
 
       <div className="flex items-center gap-4 justify-self-end md:gap-[25px]">
         {isAdmin && (
