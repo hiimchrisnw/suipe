@@ -14,11 +14,10 @@
 - TanStack Query v5 — server state, caching
 - Tailwind CSS v4 — utility-first styling via `@tailwindcss/vite` (no config file; configured in CSS)
 - Vite 8 — dev server and bundler
-- Hono client (`hc`) — typed RPC calls to `packages/api`
 
 ### API (`packages/api`)
 - Hono v4 — HTTP framework for Cloudflare Workers
-- Hono RPC — exports `AppType` for end-to-end type safety with the web client
+- Hono RPC — exports `AppType` (not currently consumed by the web app; see Conventions)
 - D1 + R2 bindings declared in `wrangler.toml`
 
 ### Shared
