@@ -61,9 +61,11 @@ unset key fails closed.
 `POST /admin/verify` sits behind the same check and does nothing else — a `204` means the key is
 correct.
 
-> **Current state: `ADMIN_KEY` has never been set.** `wrangler secret list` returns `[]`, and a
-> write against the deployed Worker answers `401`. All writes in production are refused until the
-> secret is created with `wrangler secret put ADMIN_KEY --config packages/api/wrangler.toml`.
+> **`ADMIN_KEY` is set on the deployed Worker, and must stay type Secret.** It has to remain a
+> secret binding (`wrangler secret put ADMIN_KEY --config packages/api/wrangler.toml`, or
+> type `Secret` in the dashboard). A plain-text variable of the same name is wiped on the next
+> deploy, which silently locks every write out of production. Do not add `ADMIN_KEY` to a `[vars]`
+> block in `wrangler.toml` either — that would shadow the secret with a plain-text value.
 
 ### Unlocking a device
 
