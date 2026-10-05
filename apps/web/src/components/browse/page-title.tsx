@@ -2,7 +2,7 @@
 // above the trait chip, and in the page body on desktop. Never both — see useIsMobile.
 export function PageTitle() {
   return (
-    <h1 className="max-w-[928px] text-center font-semibold text-[28px] text-paper leading-none tracking-[-0.04em] md:mx-auto md:mt-[68px] md:mb-[100px] md:text-[40px] lg:mx-0 lg:text-left lg:text-[60px]">
+    <h1 className="max-w-[928px] text-center font-semibold text-[28px] text-paper leading-none tracking-[-0.04em] md:mx-auto md:mt-[68px] md:mb-[100px] md:text-[40px] lg:text-[60px]">
       {/* The design breaks the line explicitly rather than letting it wrap. Blocks from md up, so
           the break lands on the comma at every size that can hold the longer half on one line.
           The phone cannot — at 28px that half is wider than the screen — so there it stays inline

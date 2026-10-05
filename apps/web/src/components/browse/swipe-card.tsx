@@ -148,13 +148,18 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         />
       </button>
 
+      {/* z-20 and a 44px box on phones: the heart used to sit behind the tile, reachable only
+          through the sliver of corner the peel cuts away, which measured about 12px of usable
+          diagonal — a tap a few pixels out opened the modal instead. It now owns the top right
+          corner outright. From md up it goes back behind the tile at icon size, where the hover
+          peel reveals it and there is a cursor to aim with. */}
       <button
         type="button"
         onClick={() => toggleLike(swipe.id)}
         aria-pressed={isLiked}
         aria-label={isLiked ? "Remove from faves" : "Fave"}
         // Rides in with the corner, and stays put once liked.
-        className="pointer-events-auto absolute top-[3px] right-[3px] z-0 translate-x-0 translate-y-0 scale-100 cursor-pointer opacity-100 transition-[translate,scale,opacity] duration-[553ms] ease-spring md:pointer-events-none md:top-[9px] md:right-[9px] md:translate-x-[-16px] md:translate-y-[16px] md:scale-75 md:opacity-0 md:group-hover:pointer-events-auto md:group-hover:translate-x-0 md:group-hover:translate-y-0 md:group-hover:scale-100 md:group-hover:opacity-100 md:group-data-[liked=true]:pointer-events-auto md:group-data-[liked=true]:translate-x-0 md:group-data-[liked=true]:translate-y-0 md:group-data-[liked=true]:scale-100 md:group-data-[liked=true]:opacity-100"
+        className="pointer-events-auto absolute top-[3px] right-[3px] z-20 flex size-11 translate-x-0 translate-y-0 scale-100 cursor-pointer items-start justify-end opacity-100 transition-[translate,scale,opacity] duration-[553ms] ease-spring md:pointer-events-none md:top-[9px] md:right-[9px] md:z-0 md:size-[22px] md:translate-x-[-16px] md:translate-y-[16px] md:scale-75 md:opacity-0 md:group-hover:pointer-events-auto md:group-hover:translate-x-0 md:group-hover:translate-y-0 md:group-hover:scale-100 md:group-hover:opacity-100 md:group-data-[liked=true]:pointer-events-auto md:group-data-[liked=true]:translate-x-0 md:group-data-[liked=true]:translate-y-0 md:group-data-[liked=true]:scale-100 md:group-data-[liked=true]:opacity-100"
       >
         {/* White on the red beneath: an outline until liked, then filled. */}
         <Heart
