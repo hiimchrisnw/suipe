@@ -1,10 +1,15 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["scripts/migrate-tags-dedup.mjs"],
   "workspaces": {
     ".": {},
-    "apps/web": {},
+    "apps/web": {
+      "ignoreDependencies": ["@suipe/ui"]
+    },
     "packages/schemas": {},
     "packages/api": {},
-    "packages/ui": {}
+    "packages/ui": {
+      "ignoreDependencies": ["@types/react", "@types/react-dom"]
+    }
   }
 }

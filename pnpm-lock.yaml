@@ -23,9 +23,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@suipe/api':
-        specifier: workspace:*
-        version: link:../../packages/api
       '@suipe/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
@@ -35,9 +32,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.66.0
         version: 5.95.2(react@19.2.4)
-      hono:
-        specifier: ^4.7.0
-        version: 4.12.9
       lucide-react:
         specifier: ^1.7.0
         version: 1.7.0(react@19.2.4)
@@ -78,9 +72,6 @@ importers:
 
   packages/api:
     dependencies:
-      '@hono/zod-validator':
-        specifier: ^0.7.6
-        version: 0.7.6(hono@4.12.9)(zod@4.3.6)
       '@suipe/schemas':
         specifier: workspace:*
         version: link:../schemas
@@ -705,12 +696,6 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-
-  '@hono/zod-validator@0.7.6':
-    resolution: {integrity: sha512-Io1B6d011Gj1KknV4rXYz4le5+5EubcWEU/speUjuw9XMMIaP3n78yXLhjd2A3PXaXaUwEAluOiAyLqhBEJgsw==}
-    peerDependencies:
-      hono: '>=3.9.0'
-      zod: ^3.25.0 || ^4.0.0
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -2239,11 +2224,6 @@ snapshots:
 
   '@esbuild/win32-x64@0.27.3':
     optional: true
-
-  '@hono/zod-validator@0.7.6(hono@4.12.9)(zod@4.3.6)':
-    dependencies:
-      hono: 4.12.9
-      zod: 4.3.6
 
   '@img/colour@1.1.0': {}
 

@@ -9,14 +9,6 @@ export function usePathname(): string {
   return useSyncExternalStore(subscribe, () => window.location.pathname)
 }
 
-export function useSearchParam(key: string): string | undefined {
-  const value = useSyncExternalStore(
-    subscribe,
-    () => new URLSearchParams(window.location.search).get(key) ?? "",
-  )
-  return value || undefined
-}
-
 export function useSearchParamArray(key: string): string[] {
   const raw = useSyncExternalStore(
     subscribe,

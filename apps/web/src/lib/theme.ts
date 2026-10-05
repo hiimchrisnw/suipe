@@ -1,6 +1,6 @@
 // The palette is semantic — ink is the surface, paper the colour on it — so a theme is a token
 // swap on the root element rather than a second set of styles.
-export type Theme = "dark" | "light"
+type Theme = "dark" | "light"
 
 const STORAGE_KEY = "suipe-theme"
 const listeners = new Set<() => void>()

@@ -14,10 +14,6 @@ function read(): string | null {
   }
 }
 
-export function getAdminKey(): string | null {
-  return read()
-}
-
 export function setAdminKey(key: string | null): void {
   try {
     if (key) window.localStorage.setItem(STORAGE_KEY, key)
@@ -43,7 +39,7 @@ export function useIsAdmin(): boolean {
   )
 }
 
-export function adminHeaders(): Record<string, string> {
+function adminHeaders(): Record<string, string> {
   const key = read()
   return key ? { "X-Admin-Key": key } : {}
 }

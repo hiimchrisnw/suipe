@@ -31,7 +31,7 @@ interface MediaFetchUploadParams {
   focalY?: number | undefined
 }
 
-export type UploadParams = FileUploadParams | UrlUploadParams | MediaFetchUploadParams
+type UploadParams = FileUploadParams | UrlUploadParams | MediaFetchUploadParams
 
 function isFileUpload(params: UploadParams): params is FileUploadParams {
   return "file" in params

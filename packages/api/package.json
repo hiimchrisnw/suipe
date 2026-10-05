@@ -15,7 +15,6 @@
     "db:migrate:remote": "wrangler d1 migrations apply suipe --remote"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.7.6",
     "@suipe/schemas": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.7.0"
