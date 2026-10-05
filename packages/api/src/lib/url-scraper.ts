@@ -244,20 +244,20 @@ interface SyndicationTweet {
   user?: { name?: string; screen_name?: string; profile_image_url_https?: string }
 }
 
-// Variants are the same clip at several sizes, with the dimensions in the path. The grid shows
-// these small, so take the one nearest 720px rather than the largest — the 1080p-plus variants are
-// several times the bytes for no visible gain.
-const TARGET_VIDEO_WIDTH = 720
-
+// Variants are the same clip at several sizes, with the dimensions in the path. Take the largest.
+//
+// A grid cell only needs about 720px of resolution, but X's smaller variants are encoded at a much
+// lower bitrate, and UI recordings are the worst case for that — flat fills band and fine text
+// blocks up. The largest variant downscaled into a cell looks better than a smaller one shown at
+// its native size, so this is about bits rather than pixels. It costs roughly 3.5x the bytes.
 function bestMp4(variants: SyndicationVariant[]): string | null {
   let best: string | null = null
-  let bestDistance = Number.POSITIVE_INFINITY
+  let bestWidth = -1
   for (const variant of variants) {
     if (variant.type !== "video/mp4" || !variant.src) continue
     const width = Number(variant.src.match(/\/(\d+)x\d+\//)?.[1] ?? 0)
-    const distance = Math.abs(width - TARGET_VIDEO_WIDTH)
-    if (distance < bestDistance) {
-      bestDistance = distance
+    if (width > bestWidth) {
+      bestWidth = width
       best = variant.src
     }
   }
