@@ -15,6 +15,18 @@ interface SwipeCardProps {
 // smaller in the circle. Keyed by source domain.
 const SMALLER_ICONS = new Set(["recent.design"])
 
+// X's own favicon is a white glyph on a black rounded square, which reads as a black box dropped
+// inside the circle. Draw the mark itself instead so it sits like every other source.
+const X_DOMAINS = new Set(["x.com", "twitter.com", "mobile.twitter.com"])
+
+function XMark() {
+  return (
+    <svg viewBox="0 0 1200 1227" aria-hidden="true" className="size-[13px] fill-black">
+      <path d="M714.163 519.284 1160.89 0h-105.86L667.137 450.887 357.328 0H0l468.492 681.821L0 1226.37h105.866l409.625-476.152 327.181 476.152H1200L714.137 519.284h.026ZM569.165 687.828l-47.468-67.894-377.686-540.24h162.604l304.797 435.991 47.468 67.894 396.2 566.721H892.476L569.165 687.854v-.026Z" />
+    </svg>
+  )
+}
+
 // Module-level constant — referentially stable, never re-triggers subscription
 const OBSERVER_OPTIONS: IntersectionObserverInit = { rootMargin: "200px", threshold: 0 }
 
@@ -68,17 +80,21 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
             style={faviconBg ? { backgroundColor: faviconBg } : undefined}
             className="pointer-events-none absolute bottom-2 left-2 flex size-6 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-black/10"
           >
-            <img
-              src={getFaviconUrl(sourceDomain)}
-              alt=""
-              loading="lazy"
-              crossOrigin="anonymous"
-              onLoad={(e) => setFaviconBg(readIconBackground(e.currentTarget))}
-              onError={() => setFaviconFailed(true)}
-              className={`object-contain ${
-                SMALLER_ICONS.has(sourceDomain) ? "size-[13px]" : "size-[18px]"
-              }`}
-            />
+            {X_DOMAINS.has(sourceDomain) ? (
+              <XMark />
+            ) : (
+              <img
+                src={getFaviconUrl(sourceDomain)}
+                alt=""
+                loading="lazy"
+                crossOrigin="anonymous"
+                onLoad={(e) => setFaviconBg(readIconBackground(e.currentTarget))}
+                onError={() => setFaviconFailed(true)}
+                className={`object-contain ${
+                  SMALLER_ICONS.has(sourceDomain) ? "size-[13px]" : "size-[18px]"
+                }`}
+              />
+            )}
           </span>
         )}
 

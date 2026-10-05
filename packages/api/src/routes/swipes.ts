@@ -6,6 +6,24 @@ import type { Bindings } from "../index"
 import { normalizeUrl } from "../lib/normalize-url"
 import { fetchUrlMedia } from "../lib/url-scraper"
 
+// Avatars are rehosted so a swipe keeps its credit image even if the author changes or deletes
+// theirs, and so we never hotlink twimg. A failure here must not sink the upload: the swipe is
+// the point, the avatar is decoration, so this returns null and the column stays empty.
+async function rehostAvatar(bucket: R2Bucket, url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url)
+    if (!res.ok || !res.body) return null
+    const contentType = res.headers.get("content-type")?.split(";")[0]?.trim() ?? "image/jpeg"
+    if (!contentType.startsWith("image/")) return null
+    const ext = contentType.split("/")[1]?.toLowerCase() ?? "jpg"
+    const key = `avatars/${crypto.randomUUID()}.${ext}`
+    await bucket.put(key, res.body, { httpMetadata: { contentType } })
+    return key
+  } catch {
+    return null
+  }
+}
+
 function toSentenceCase(t: string): string {
   const s = t.trim().toLowerCase()
   return s.charAt(0).toUpperCase() + s.slice(1)
@@ -77,6 +95,9 @@ const swipes = new Hono<{ Bindings: Bindings }>()
         mediaUrl?: string
         mediaType?: string
         sourceUrl?: string
+        authorName?: string
+        authorHandle?: string
+        authorAvatarUrl?: string
         description?: string
         tags?: string[]
         focalX?: number | null
@@ -135,6 +156,10 @@ const swipes = new Hono<{ Bindings: Bindings }>()
           httpMetadata: { contentType: fetchedContentType },
         })
 
+        const avatarKey = body.authorAvatarUrl
+          ? await rehostAvatar(c.env.ASSETS, body.authorAvatarUrl)
+          : null
+
         const [swipe] = await db
           .insert(schema.swipes)
           .values({
@@ -142,6 +167,9 @@ const swipes = new Hono<{ Bindings: Bindings }>()
             mediaType: deriveMediaType(fetchedContentType),
             sourceType: "upload",
             sourceUrl: body.sourceUrl ?? null,
+            authorName: body.authorName ?? null,
+            authorHandle: body.authorHandle ?? null,
+            authorAvatar: avatarKey,
             description: body.description ?? null,
             tags: JSON.stringify(normalizedTags),
             focalX,
@@ -156,6 +184,10 @@ const swipes = new Hono<{ Bindings: Bindings }>()
         return c.json({ error: "Missing imageUrl or mediaUrl" }, 400)
       }
 
+      const externalAvatarKey = body.authorAvatarUrl
+        ? await rehostAvatar(c.env.ASSETS, body.authorAvatarUrl)
+        : null
+
       const [swipe] = await db
         .insert(schema.swipes)
         .values({
@@ -163,6 +195,9 @@ const swipes = new Hono<{ Bindings: Bindings }>()
           mediaType: body.mediaType ?? "image",
           sourceType: "external",
           sourceUrl: body.sourceUrl ?? null,
+          authorName: body.authorName ?? null,
+          authorHandle: body.authorHandle ?? null,
+          authorAvatar: externalAvatarKey,
           description: body.description ?? null,
           tags: JSON.stringify(normalizedTags),
           focalX,
@@ -188,6 +223,11 @@ const swipes = new Hono<{ Bindings: Bindings }>()
     }
 
     const ext = file.name.split(".").pop() ?? "bin"
+    const multipartAvatarKey =
+      typeof body.author_avatar_url === "string"
+        ? await rehostAvatar(c.env.ASSETS, body.author_avatar_url)
+        : null
+
     const key = `${crypto.randomUUID()}.${ext}`
     await c.env.ASSETS.put(key, file.stream(), {
       httpMetadata: { contentType: file.type },
@@ -200,6 +240,9 @@ const swipes = new Hono<{ Bindings: Bindings }>()
         mediaType: deriveMediaType(file.type),
         sourceType: "upload",
         sourceUrl: typeof body.source_url === "string" ? body.source_url : null,
+        authorName: typeof body.author_name === "string" ? body.author_name : null,
+        authorHandle: typeof body.author_handle === "string" ? body.author_handle : null,
+        authorAvatar: multipartAvatarKey,
         description: typeof body.description === "string" ? body.description : null,
         tags: JSON.stringify(tags),
         focalX: parseFocalCoord(body.focal_x),

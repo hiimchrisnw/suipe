@@ -1,6 +1,13 @@
 interface FetchUrlResult {
   url: string
   mimeType: string
+  // Set only by handlers that can name the original post. Lets the caller store where a thing
+  // actually came from rather than whichever link happened to be pasted.
+  sourceUrl?: string
+  authorName?: string
+  authorHandle?: string
+  // Where the avatar lives on the source site. The caller rehosts it; nothing stores this as-is.
+  authorAvatarUrl?: string
 }
 
 const DIRECT_MEDIA_EXTENSIONS: Record<string, string> = {
@@ -205,6 +212,101 @@ async function fetchCollectUiMedia(url: string): Promise<FetchUrlResult | null> 
   return await verifyMediaUrl(embedded)
 }
 
+// X shows crawlers a still and nothing else: on a video post the og:image is an
+// amplify_video_thumb frame and there is no og:video tag at all, so scraping the page can only
+// ever yield the poster. The syndication endpoint behind embedded tweets does carry the clip.
+const X_HOSTS = new Set([
+  "x.com",
+  "www.x.com",
+  "twitter.com",
+  "www.twitter.com",
+  "mobile.twitter.com",
+])
+const X_STATUS_PATH = /\/status(?:es)?\/(\d+)/
+
+// The endpoint returns an empty object unless a token is present, but never checks its value, so
+// this is a literal rather than anything derived from X's embed widget. If X starts validating it,
+// the response comes back empty and the caller gets the no-media error.
+const X_SYNDICATION_TOKEN = "suipe"
+
+interface SyndicationVariant {
+  type?: string
+  src?: string
+}
+
+interface SyndicationTweet {
+  video?: { variants?: SyndicationVariant[] }
+  photos?: Array<{ url?: string }>
+  mediaDetails?: Array<{ media_url_https?: string }>
+  user?: { name?: string; screen_name?: string; profile_image_url_https?: string }
+}
+
+// Variants are the same clip at several sizes, with the dimensions in the path.
+function widestMp4(variants: SyndicationVariant[]): string | null {
+  let best: string | null = null
+  let bestWidth = -1
+  for (const variant of variants) {
+    if (variant.type !== "video/mp4" || !variant.src) continue
+    const width = Number(variant.src.match(/\/(\d+)x\d+\//)?.[1] ?? 0)
+    if (width > bestWidth) {
+      bestWidth = width
+      best = variant.src
+    }
+  }
+  return best
+}
+
+async function fetchXMedia(url: string): Promise<FetchUrlResult | null> {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return null
+  }
+  if (!X_HOSTS.has(parsed.hostname)) return null
+  const id = parsed.pathname.match(X_STATUS_PATH)?.[1]
+  if (!id) return null
+
+  const endpoint = `https://cdn.syndication.twimg.com/tweet-result?id=${id}&token=${X_SYNDICATION_TOKEN}&lang=en`
+  // Workers send no User-Agent by default and the endpoint answers 400 without one. This is our
+  // own identifier, the same one the other handlers use — not X's embed widget.
+  const res = await fetch(endpoint, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; Suipe/1.0)" },
+  })
+  // A deleted, private or suspended post answers 404 here rather than with an empty payload.
+  if (res.status === 404) {
+    throw new PageFetchError("That post is unavailable — it may be deleted, private or suspended.")
+  }
+  if (!res.ok) throw pageFetchError(res.status)
+
+  const tweet = (await res.json()) as SyndicationTweet
+
+  // Video and animated GIF both arrive as mp4 variants; a plain photo post has none.
+  const variants = tweet.video?.variants
+  const clip = variants ? widestMp4(variants) : null
+  const photo = tweet.photos?.[0]?.url ?? tweet.mediaDetails?.[0]?.media_url_https
+  const media = clip ?? photo
+
+  // Deliberately not falling through to the generic scrape: that would "succeed" with the poster
+  // frame, which is the exact thing this handler exists to avoid. An empty payload — which is what
+  // a tokenless or rejected request returns — lands here too.
+  if (!media) throw new PageFetchError("No media found on that post")
+
+  const handle = tweet.user?.screen_name
+  const name = tweet.user?.name
+  // The payload carries the 48px thumbnail; the same path at _400x400 is the usable size.
+  const avatar = tweet.user?.profile_image_url_https?.replace("_normal.", "_400x400.")
+  return {
+    ...(await verifyMediaUrl(media)),
+    // Rebuilt from the post id rather than echoed back, so a mobile.twitter.com link, a tracking
+    // query or an /i/status/ permalink all resolve to the one canonical post.
+    ...(handle ? { sourceUrl: `https://x.com/${handle}/status/${id}` } : {}),
+    ...(name ? { authorName: name } : {}),
+    ...(handle ? { authorHandle: `@${handle}` } : {}),
+    ...(avatar ? { authorAvatarUrl: avatar } : {}),
+  }
+}
+
 // A page that renders its media client-side may need several tries before a request lands on a
 // backend that returns fully rendered HTML. Measured against Savee: ~50% of cold requests return
 // the shell, so a handful of spaced attempts turns a coin flip into a near-certainty.
@@ -282,6 +384,9 @@ export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
 
   const collectUi = await fetchCollectUiMedia(url)
   if (collectUi) return collectUi
+
+  const x = await fetchXMedia(url)
+  if (x) return x
 
   const ext = getExtensionFromUrl(url)
   if (ext) {

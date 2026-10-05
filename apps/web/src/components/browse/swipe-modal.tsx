@@ -248,18 +248,31 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
         </div>
 
         <div className="mt-4 flex shrink-0 items-center justify-between">
-          {swipe.sourceUrl ? (
-            <a
-              href={swipe.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-base font-normal text-gray-600 hover:border-gray-300 hover:text-gray-900"
-            >
-              Source <ExternalLink size={14} className="relative -top-0.5 inline" />
-            </a>
-          ) : (
-            <span />
-          )}
+          <div className="flex items-center gap-3">
+            {swipe.sourceUrl ? (
+              <a
+                href={swipe.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-base font-normal text-gray-600 hover:border-gray-300 hover:text-gray-900"
+              >
+                Source <ExternalLink size={14} className="relative -top-0.5 inline" />
+              </a>
+            ) : (
+              <span />
+            )}
+            {/* The handle is stored with its @; the profile path is the bare one. */}
+            {swipe.authorHandle && (
+              <a
+                href={`https://x.com/${swipe.authorHandle.replace(/^@/, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-base font-normal text-gray-500 hover:text-gray-900"
+              >
+                by {swipe.authorHandle}
+              </a>
+            )}
+          </div>
           {isAdmin && (
             <button
               type="button"

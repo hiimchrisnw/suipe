@@ -10,7 +10,14 @@ import { TagInput } from "./tag-input"
 interface FetchedMedia {
   url: string
   mimeType: string
+  // The link that was pasted — the key for "have we already fetched this?".
   sourceUrl: string
+  // What the site says the original post is, when it can say. Stored in preference to the pasted
+  // link so a repost never gets recorded as the source.
+  canonicalUrl?: string
+  authorName?: string
+  authorHandle?: string
+  authorAvatarUrl?: string
 }
 
 const SIXTY_FPS_URL = "https://60fps.design/"
@@ -99,7 +106,15 @@ export function UploadPage() {
 
     fetchUrl.mutate(url, {
       onSuccess: (result) => {
-        setFetchedMedia({ url: result.url, mimeType: result.mimeType, sourceUrl: url })
+        setFetchedMedia({
+          url: result.url,
+          mimeType: result.mimeType,
+          sourceUrl: url,
+          ...(result.sourceUrl ? { canonicalUrl: result.sourceUrl } : {}),
+          ...(result.authorName ? { authorName: result.authorName } : {}),
+          ...(result.authorHandle ? { authorHandle: result.authorHandle } : {}),
+          ...(result.authorAvatarUrl ? { authorAvatarUrl: result.authorAvatarUrl } : {}),
+        })
         setFocalX(50)
         setFocalY(50)
         // The same media can sit behind a different page URL, so check what was fetched too.
@@ -135,7 +150,14 @@ export function UploadPage() {
 
     const tagsList = tags.length > 0 ? tags : undefined
     const trimmedSource = sourceUrl.trim()
-    const effectiveSource = sixtyFps ? SIXTY_FPS_URL : trimmedSource || undefined
+    const effectiveSource = sixtyFps
+      ? SIXTY_FPS_URL
+      : (fetchedMedia?.canonicalUrl ?? (trimmedSource || undefined))
+    const credit = {
+      authorName: fetchedMedia?.authorName,
+      authorHandle: fetchedMedia?.authorHandle,
+      authorAvatarUrl: fetchedMedia?.authorAvatarUrl,
+    }
     const mediaUrlToCheck = !file ? fetchedMedia?.url : undefined
 
     if (trimmedSource || mediaUrlToCheck) {
@@ -161,7 +183,15 @@ export function UploadPage() {
       if (!media || media.sourceUrl !== trimmedSource) {
         try {
           const result = await fetchUrl.mutateAsync(trimmedSource)
-          media = { url: result.url, mimeType: result.mimeType, sourceUrl: trimmedSource }
+          media = {
+            url: result.url,
+            mimeType: result.mimeType,
+            sourceUrl: trimmedSource,
+            ...(result.sourceUrl ? { canonicalUrl: result.sourceUrl } : {}),
+            ...(result.authorName ? { authorName: result.authorName } : {}),
+            ...(result.authorHandle ? { authorHandle: result.authorHandle } : {}),
+            ...(result.authorAvatarUrl ? { authorAvatarUrl: result.authorAvatarUrl } : {}),
+          }
           setFetchedMedia(media)
         } catch {
           return
@@ -170,7 +200,10 @@ export function UploadPage() {
 
       upload.mutate({
         mediaUrl: media.url,
-        sourceUrl: media.sourceUrl,
+        sourceUrl: media.canonicalUrl ?? media.sourceUrl,
+        authorName: media.authorName,
+        authorHandle: media.authorHandle,
+        authorAvatarUrl: media.authorAvatarUrl,
         description: description || undefined,
         tags: tagsList,
         focalX,
@@ -194,6 +227,7 @@ export function UploadPage() {
       upload.mutate({
         file: payloadFile,
         sourceUrl: effectiveSource,
+        ...credit,
         description: description || undefined,
         tags: tagsList,
         focalX,
@@ -211,6 +245,7 @@ export function UploadPage() {
             ? "gif"
             : "image",
         sourceUrl: effectiveSource,
+        ...credit,
         description: description || undefined,
         tags: tagsList,
         focalX,

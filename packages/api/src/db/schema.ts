@@ -9,6 +9,10 @@ export const swipes = sqliteTable("swipes", {
   mediaType: text("media_type").notNull().default("image"),
   sourceType: text("source_type").notNull().default("upload"),
   sourceUrl: text("source_url"),
+  authorName: text("author_name"),
+  authorHandle: text("author_handle"),
+  // An R2 key, not a twimg URL — the avatar is rehosted on save.
+  authorAvatar: text("author_avatar"),
   description: text("description"),
   tags: text("tags").notNull().default("[]"),
   focalX: real("focal_x"),

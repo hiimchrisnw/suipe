@@ -1,7 +1,9 @@
 import { Hono } from "hono"
 import type { Bindings } from "../index"
 
-const assets = new Hono<{ Bindings: Bindings }>().get("/:key", async (c) => {
+// {.+} so the key may contain slashes — avatars live under an avatars/ prefix. R2 keys are flat
+// strings, so a path like ../ is just an ordinary key that does not exist.
+const assets = new Hono<{ Bindings: Bindings }>().get("/:key{.+}", async (c) => {
   const key = c.req.param("key")
   const object = await c.env.ASSETS.get(key)
 

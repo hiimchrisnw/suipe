@@ -6,6 +6,9 @@ import { navigate } from "../lib/router"
 interface FileUploadParams {
   file: File
   sourceUrl?: string | undefined
+  authorName?: string | undefined
+  authorHandle?: string | undefined
+  authorAvatarUrl?: string | undefined
   description?: string | undefined
   tags?: string[] | undefined
   focalX?: number | undefined
@@ -16,6 +19,9 @@ interface UrlUploadParams {
   imageUrl: string
   mediaType?: string | undefined
   sourceUrl?: string | undefined
+  authorName?: string | undefined
+  authorHandle?: string | undefined
+  authorAvatarUrl?: string | undefined
   description?: string | undefined
   tags?: string[] | undefined
   focalX?: number | undefined
@@ -25,6 +31,9 @@ interface UrlUploadParams {
 interface MediaFetchUploadParams {
   mediaUrl: string
   sourceUrl?: string | undefined
+  authorName?: string | undefined
+  authorHandle?: string | undefined
+  authorAvatarUrl?: string | undefined
   description?: string | undefined
   tags?: string[] | undefined
   focalX?: number | undefined
@@ -52,6 +61,9 @@ export function useUpload() {
         const formData = new FormData()
         formData.append("file", params.file)
         if (params.sourceUrl) formData.append("source_url", params.sourceUrl)
+        if (params.authorName) formData.append("author_name", params.authorName)
+        if (params.authorHandle) formData.append("author_handle", params.authorHandle)
+        if (params.authorAvatarUrl) formData.append("author_avatar_url", params.authorAvatarUrl)
         if (params.description) formData.append("description", params.description)
         if (params.tags && params.tags.length > 0) {
           formData.append("tags", JSON.stringify(params.tags))
@@ -69,6 +81,9 @@ export function useUpload() {
           body: JSON.stringify({
             mediaUrl: params.mediaUrl,
             sourceUrl: params.sourceUrl,
+            authorName: params.authorName,
+            authorHandle: params.authorHandle,
+            authorAvatarUrl: params.authorAvatarUrl,
             description: params.description,
             tags: params.tags,
             focalX: params.focalX,
@@ -83,6 +98,9 @@ export function useUpload() {
             imageUrl: params.imageUrl,
             mediaType: params.mediaType,
             sourceUrl: params.sourceUrl,
+            authorName: params.authorName,
+            authorHandle: params.authorHandle,
+            authorAvatarUrl: params.authorAvatarUrl,
             description: params.description,
             tags: params.tags,
             focalX: params.focalX,

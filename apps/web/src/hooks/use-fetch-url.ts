@@ -4,6 +4,11 @@ import { adminFetch } from "../lib/admin"
 interface FetchUrlResult {
   url: string
   mimeType: string
+  // Present when the site could name the original post, e.g. an X status rebuilt from its id.
+  sourceUrl?: string
+  authorName?: string
+  authorHandle?: string
+  authorAvatarUrl?: string
 }
 
 export function useFetchUrl() {
