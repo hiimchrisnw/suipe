@@ -7,7 +7,7 @@ import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
 import { useTags } from "../../hooks/use-tags"
 import { useUpdateSwipe } from "../../hooks/use-update-swipe"
 import { useIsAdmin } from "../../lib/admin"
-import { getMediaUrl } from "../../lib/image-url"
+import { getAssetUrl, getMediaUrl } from "../../lib/image-url"
 import { FocalPicker } from "../common/focal-picker"
 
 function toTitleCase(s: string) {
@@ -261,15 +261,25 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
             ) : (
               <span />
             )}
-            {/* The handle is stored with its @; the profile path is the bare one. */}
+            {/* The handle is stored with its @; the profile path is the bare one. The avatar is
+                an R2 key and is missing on anything saved before it was captured, so the link has
+                to read correctly without it. */}
             {swipe.authorHandle && (
               <a
                 href={`https://x.com/${swipe.authorHandle.replace(/^@/, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-base font-normal text-gray-500 hover:text-gray-900"
+                className="flex items-center gap-2 text-base font-normal text-gray-500 hover:text-gray-900"
               >
-                by {swipe.authorHandle}
+                {swipe.authorAvatar && (
+                  <img
+                    src={getAssetUrl(swipe.authorAvatar)}
+                    alt=""
+                    loading="lazy"
+                    className="size-6 shrink-0 rounded-full object-cover ring-1 ring-black/10"
+                  />
+                )}
+                <span>by {swipe.authorHandle}</span>
               </a>
             )}
           </div>

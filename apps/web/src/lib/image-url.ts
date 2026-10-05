@@ -4,6 +4,11 @@ export function getMediaUrl(swipe: { imageUrl: string; sourceType: string }): st
 }
 
 // The site the swipe came from, as a bare domain ("savee.com"), or null when there isn't one.
+// For a bare R2 key, such as a stored author avatar.
+export function getAssetUrl(key: string): string {
+  return `${import.meta.env.VITE_API_URL}/assets/${key}`
+}
+
 export function getSourceDomain(sourceUrl: string | null): string | null {
   if (!sourceUrl) return null
   try {
