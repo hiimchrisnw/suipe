@@ -104,8 +104,13 @@ and a bare `?debug` behave identically.
 ## CI/CD
 
 GitHub Actions deploys automatically on push to `main`:
-- **`deploy-api.yml`** — deploys `packages/api` to Cloudflare Workers (runs only when `packages/api/**` changes)
-- **`deploy-web.yml`** — builds and deploys `apps/web` to Cloudflare Pages project "suipe" (runs only when `apps/web/**` changes)
+- **`deploy-api.yml`** — deploys `packages/api` to Cloudflare Workers
+- **`deploy-web.yml`** — builds and deploys `apps/web` to Cloudflare Pages project "suipe"
+
+Both run on **every** push to `main`, including docs-only ones — neither has a `paths:` filter.
+That is deliberate rather than an oversight to tidy up: `packages/schemas` is consumed by both
+workspaces, so a filter scoped to `apps/web/**` and `packages/api/**` would skip a deploy that a
+shared schema change actually needed. The cost is two redundant runs per push.
 
 ### Required GitHub Secrets
 
