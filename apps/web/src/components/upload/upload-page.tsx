@@ -1,7 +1,6 @@
 import { useRef, useState } from "react"
 import { useCheckDuplicate } from "../../hooks/use-check-duplicate"
 import { useFetchUrl } from "../../hooks/use-fetch-url"
-import { useSuggestTags } from "../../hooks/use-suggest-tags"
 import { useUpload } from "../../hooks/use-upload"
 import { cropMobbinFromBottom } from "../../lib/crop-image"
 import { FocalPicker } from "../common/focal-picker"
@@ -29,9 +28,7 @@ export function UploadPage() {
   const [focalX, setFocalX] = useState(50)
   const [focalY, setFocalY] = useState(50)
   const [duplicateMessage, setDuplicateMessage] = useState<string | null>(null)
-  const tagsEditedRef = useRef(false)
   const upload = useUpload()
-  const suggestTags = useSuggestTags()
   const fetchUrl = useFetchUrl()
   const checkDuplicate = useCheckDuplicate()
   const checkedUrlRef = useRef<string | null>(null)
@@ -57,14 +54,6 @@ export function UploadPage() {
     setCropError(null)
     setFocalX(50)
     setFocalY(50)
-    tagsEditedRef.current = false
-    suggestTags.mutate(selected, {
-      onSuccess: (suggested) => {
-        if (!tagsEditedRef.current && suggested.length > 0) {
-          setTags(suggested)
-        }
-      },
-    })
   }
 
   function handleMobbinChange(checked: boolean) {
@@ -374,14 +363,7 @@ export function UploadPage() {
         </div>
 
         <div className="space-y-3 md:space-y-4">
-          <TagInput
-            tags={tags}
-            onChange={(v) => {
-              tagsEditedRef.current = true
-              setTags(v)
-            }}
-            isPending={suggestTags.isPending}
-          />
+          <TagInput tags={tags} onChange={setTags} />
 
           <button
             type="submit"

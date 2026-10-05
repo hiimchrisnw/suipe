@@ -4,10 +4,9 @@ import { PRESET_TAGS } from "../../hooks/use-tags"
 interface TagInputProps {
   tags: string[]
   onChange: (tags: string[]) => void
-  isPending: boolean
 }
 
-export function TagInput({ tags, onChange, isPending }: TagInputProps) {
+export function TagInput({ tags, onChange }: TagInputProps) {
   const selected = new Set(tags)
   const isAtLimit = tags.length >= MAX_TRAITS
 
@@ -24,9 +23,6 @@ export function TagInput({ tags, onChange, isPending }: TagInputProps) {
       <span className="mb-1 flex items-center gap-2 text-base font-normal text-gray-700">
         Tags
         <span className="text-base font-normal text-gray-400">{MAX_TRAITS} max</span>
-        {isPending && (
-          <span className="text-base font-normal text-gray-400">Suggesting tags...</span>
-        )}
       </span>
       <div className="flex flex-wrap gap-2">
         {PRESET_TAGS.map((tag) => {

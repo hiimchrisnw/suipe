@@ -65,7 +65,6 @@ correct.
 > **Current state: `ADMIN_KEY` has never been set.** `wrangler secret list` returns `[]`, and a
 > write against the deployed Worker answers `401`. All writes in production are refused until the
 > secret is created with `wrangler secret put ADMIN_KEY --config packages/api/wrangler.toml`.
-> `ANTHROPIC_API_KEY` is unset too, so AI tag suggestion is down on the same deployment.
 
 ### Unlocking a device
 

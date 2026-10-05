@@ -1,2 +1,5 @@
 # Add API secrets here (auth keys, etc.)
-ANTHROPIC_API_KEY=your-api-key-here
+
+# Must match the X-Admin-Key header the web app sends after a device is
+# unlocked at /admin. Writes are refused while it is unset.
+ADMIN_KEY=

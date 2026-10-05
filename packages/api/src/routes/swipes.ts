@@ -3,18 +3,8 @@ import { type AnyColumn, and, desc, eq, like, or, sql } from "drizzle-orm"
 import { Hono } from "hono"
 import { createDb, schema } from "../db"
 import type { Bindings } from "../index"
-import { suggestTags } from "../lib/ai-tagging"
 import { normalizeUrl } from "../lib/normalize-url"
 import { fetchUrlMedia } from "../lib/url-scraper"
-
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer)
-  let binary = ""
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte)
-  }
-  return btoa(binary)
-}
 
 function toSentenceCase(t: string): string {
   const s = t.trim().toLowerCase()
@@ -75,23 +65,6 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       const message = e instanceof Error ? e.message : "Failed to fetch URL"
       return c.json({ error: message }, 422)
     }
-  })
-  .post("/suggest-tags", async (c) => {
-    const body = await c.req.parseBody()
-    const file = body.file
-    if (!(file instanceof File)) {
-      return c.json({ error: "Missing image file" }, 400)
-    }
-
-    if (file.type.startsWith("video/")) {
-      return c.json({ tags: [] as string[] })
-    }
-
-    const buffer = await file.arrayBuffer()
-    const base64 = arrayBufferToBase64(buffer)
-    const tags = await suggestTags(base64, file.type, c.env.ANTHROPIC_API_KEY)
-
-    return c.json({ tags })
   })
   .post("/upload", async (c) => {
     const contentType = c.req.header("content-type") ?? ""
