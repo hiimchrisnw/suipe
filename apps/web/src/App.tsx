@@ -1,5 +1,6 @@
 import { AdminPage } from "./components/admin-page"
 import { BrowsePage } from "./components/browse/browse-page"
+import { FavesPage } from "./components/browse/faves-page"
 import { Nav } from "./components/nav"
 import { UploadPage } from "./components/upload/upload-page"
 import { useIsAdmin } from "./lib/admin"
@@ -12,7 +13,9 @@ export function App() {
   return (
     <div className="min-h-screen bg-ink font-light text-paper">
       <Nav />
-      {pathname === "/admin" ? (
+      {pathname === "/faves" ? (
+        <FavesPage />
+      ) : pathname === "/admin" ? (
         <AdminPage />
       ) : pathname === "/upload" && isAdmin ? (
         // The redesign only covers browse, so upload keeps its light styling on a light surface.

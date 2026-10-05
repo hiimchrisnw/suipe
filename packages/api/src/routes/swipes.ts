@@ -1,5 +1,5 @@
 import { MAX_TRAITS } from "@suipe/schemas"
-import { type AnyColumn, and, desc, eq, like, or, sql } from "drizzle-orm"
+import { type AnyColumn, and, desc, eq, inArray, like, or, sql } from "drizzle-orm"
 import { Hono } from "hono"
 import { createDb, schema } from "../db"
 import type { Bindings } from "../index"
@@ -399,9 +399,24 @@ const swipes = new Hono<{ Bindings: Bindings }>()
           .map((t) => t.trim())
           .filter(Boolean)
       : []
+    // Saves are held in the visitor's browser, so the faves grid asks for its ids directly.
+    // Capped per request; the caller sends them in batches.
+    const rawIds = c.req.query("ids")
+    const ids = rawIds
+      ? rawIds
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean)
+          .slice(0, 100)
+      : []
+
     const rawLimit = Number(c.req.query("limit") ?? "30")
     const rawOffset = Number(c.req.query("offset") ?? "0")
-    const limit = Math.min(Math.max(1, Number.isFinite(rawLimit) ? rawLimit : 30), 100)
+    // An id request is bounded by the list itself, so it must not be clipped by the page size.
+    const limit =
+      rawIds !== undefined
+        ? Math.max(1, ids.length)
+        : Math.min(Math.max(1, Number.isFinite(rawLimit) ? rawLimit : 30), 100)
     const offset = Math.max(0, Number.isFinite(rawOffset) ? rawOffset : 0)
     const db = createDb(c.env.DB)
 
@@ -413,7 +428,11 @@ const swipes = new Hono<{ Bindings: Bindings }>()
       .offset(offset)
       .$dynamic()
 
-    if (tags.length > 0) {
+    if (rawIds !== undefined) {
+      // An explicit but empty id list means "nothing", not "everything".
+      if (ids.length === 0) return c.json([])
+      query = query.where(inArray(schema.swipes.id, ids))
+    } else if (tags.length > 0) {
       query = query.where(
         and(...tags.map((tag) => like(schema.swipes.tags, `%${JSON.stringify(tag)}%`))),
       )

@@ -8,7 +8,7 @@ import { SwipeModal } from "./swipe-modal"
 // Enough to fill a large screen; the real grid replaces them as soon as the first page lands.
 const SKELETON_COUNT = 12
 
-const GRID_CLASS = "grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+export const GRID_CLASS = "grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
 
 export function BrowsePage() {
   const emotions = useSelectedTraits()

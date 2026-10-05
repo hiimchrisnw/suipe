@@ -54,7 +54,12 @@ export function Nav() {
         data-recipe-row
         className="order-last col-span-2 justify-self-center md:order-none md:col-span-1"
       >
-        {(pathname === "/upload" && isAdmin) || pathname === "/admin" ? null : <TraitMenu />}
+        {/* Filtering only applies to browse; faves has nothing to filter. */}
+        {(pathname === "/upload" && isAdmin) ||
+        pathname === "/admin" ||
+        pathname === "/faves" ? null : (
+          <TraitMenu />
+        )}
       </div>
 
       <div className="flex items-center gap-4 justify-self-end md:gap-[25px]">
