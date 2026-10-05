@@ -18,9 +18,19 @@ interface FetchedMedia {
   authorName?: string
   authorHandle?: string
   authorAvatarUrl?: string
+  // Set when the API already pulled the file into R2, because the host refuses browser requests.
+  // The preview plays that stored object and saving reuses it.
+  assetKey?: string
 }
 
 const SIXTY_FPS_URL = "https://60fps.design/"
+
+// Some hosts (X) 403 any request carrying a Referer, which a browser always sends. For those the
+// API has already stored the file, so play that rather than the original URL.
+function previewSrc(media: { url: string; assetKey?: string }): string {
+  if (!media.assetKey) return media.url
+  return `${import.meta.env.VITE_API_URL}/assets/${media.assetKey}`
+}
 
 export function UploadPage() {
   const [file, setFile] = useState<File | null>(null)
@@ -51,7 +61,7 @@ export function UploadPage() {
     }
   }
 
-  const preview = file ? URL.createObjectURL(file) : (fetchedMedia?.url ?? null)
+  const preview = file ? URL.createObjectURL(file) : fetchedMedia ? previewSrc(fetchedMedia) : null
   const isVideo = file
     ? file.type.startsWith("video/")
     : (fetchedMedia?.mimeType.startsWith("video/") ?? false)
@@ -114,6 +124,7 @@ export function UploadPage() {
           ...(result.authorName ? { authorName: result.authorName } : {}),
           ...(result.authorHandle ? { authorHandle: result.authorHandle } : {}),
           ...(result.authorAvatarUrl ? { authorAvatarUrl: result.authorAvatarUrl } : {}),
+          ...(result.assetKey ? { assetKey: result.assetKey } : {}),
         })
         setFocalX(50)
         setFocalY(50)
@@ -191,6 +202,7 @@ export function UploadPage() {
             ...(result.authorName ? { authorName: result.authorName } : {}),
             ...(result.authorHandle ? { authorHandle: result.authorHandle } : {}),
             ...(result.authorAvatarUrl ? { authorAvatarUrl: result.authorAvatarUrl } : {}),
+            ...(result.assetKey ? { assetKey: result.assetKey } : {}),
           }
           setFetchedMedia(media)
         } catch {
@@ -237,6 +249,25 @@ export function UploadPage() {
     }
 
     if (fetchedMedia) {
+      // Already in R2 from the paste, so record that object instead of fetching anything again.
+      if (fetchedMedia.assetKey) {
+        upload.mutate({
+          assetKey: fetchedMedia.assetKey,
+          mediaType: fetchedMedia.mimeType.startsWith("video/")
+            ? "video"
+            : fetchedMedia.mimeType === "image/gif"
+              ? "gif"
+              : "image",
+          sourceUrl: effectiveSource,
+          ...credit,
+          description: description || undefined,
+          tags: tagsList,
+          focalX,
+          focalY,
+        })
+        return
+      }
+
       upload.mutate({
         imageUrl: fetchedMedia.url,
         mediaType: fetchedMedia.mimeType.startsWith("video/")

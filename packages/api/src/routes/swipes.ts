@@ -24,6 +24,37 @@ async function rehostAvatar(bucket: R2Bucket, url: string): Promise<string | nul
   }
 }
 
+// Pulls a remote file into R2 once and hands back its key. Used when a host refuses browser
+// requests (X 403s anything with a Referer), so the file has to live on our own origin before a
+// page can show it at all.
+async function storeRemoteMedia(
+  bucket: R2Bucket,
+  url: string,
+): Promise<{ key: string; contentType: string } | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; Suipe/1.0)" },
+    })
+    if (!res.ok || !res.body) return null
+    const contentType =
+      res.headers.get("content-type")?.split(";")[0]?.trim() ?? "application/octet-stream"
+    const urlExt = (() => {
+      try {
+        return new URL(url).pathname.split(".").pop()?.toLowerCase()
+      } catch {
+        return undefined
+      }
+    })()
+    const mimeExt = contentType.split("/")[1]?.toLowerCase()
+    const ext = urlExt && urlExt.length <= 5 ? urlExt : (mimeExt ?? "bin")
+    const key = `${crypto.randomUUID()}.${ext}`
+    await bucket.put(key, res.body, { httpMetadata: { contentType } })
+    return { key, contentType }
+  } catch {
+    return null
+  }
+}
+
 function toSentenceCase(t: string): string {
   const s = t.trim().toLowerCase()
   return s.charAt(0).toUpperCase() + s.slice(1)
@@ -78,6 +109,17 @@ const swipes = new Hono<{ Bindings: Bindings }>()
 
     try {
       const result = await fetchUrlMedia(body.url)
+
+      // The browser cannot load this host directly, so pull it in now. The preview then plays the
+      // very file we stored, and saving reuses it rather than fetching a second time.
+      if (result.rehostRequired) {
+        const stored = await storeRemoteMedia(c.env.ASSETS, result.url)
+        if (!stored) {
+          return c.json({ error: "Could not download that media" }, 422)
+        }
+        return c.json({ ...result, assetKey: stored.key, mimeType: stored.contentType })
+      }
+
       return c.json(result)
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to fetch URL"
@@ -98,6 +140,8 @@ const swipes = new Hono<{ Bindings: Bindings }>()
         authorName?: string
         authorHandle?: string
         authorAvatarUrl?: string
+        // An object fetch-url already pulled into R2; stored as-is rather than fetched again.
+        assetKey?: string
         description?: string
         tags?: string[]
         focalX?: number | null
@@ -178,6 +222,31 @@ const swipes = new Hono<{ Bindings: Bindings }>()
           .returning()
 
         return c.json({ ...swipe, tags: normalizedTags }, 201)
+      }
+
+      if (body.assetKey) {
+        const avatarKeyForStored = body.authorAvatarUrl
+          ? await rehostAvatar(c.env.ASSETS, body.authorAvatarUrl)
+          : null
+
+        const [stored] = await db
+          .insert(schema.swipes)
+          .values({
+            imageUrl: body.assetKey,
+            mediaType: body.mediaType ?? "image",
+            sourceType: "upload",
+            sourceUrl: body.sourceUrl ?? null,
+            authorName: body.authorName ?? null,
+            authorHandle: body.authorHandle ?? null,
+            authorAvatar: avatarKeyForStored,
+            description: body.description ?? null,
+            tags: JSON.stringify(normalizedTags),
+            focalX,
+            focalY,
+          })
+          .returning()
+
+        return c.json({ ...stored, tags: normalizedTags }, 201)
       }
 
       if (!body.imageUrl) {

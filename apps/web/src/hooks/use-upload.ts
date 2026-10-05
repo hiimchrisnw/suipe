@@ -40,10 +40,31 @@ interface MediaFetchUploadParams {
   focalY?: number | undefined
 }
 
-type UploadParams = FileUploadParams | UrlUploadParams | MediaFetchUploadParams
+interface StoredAssetUploadParams {
+  assetKey: string
+  mediaType?: string | undefined
+  sourceUrl?: string | undefined
+  authorName?: string | undefined
+  authorHandle?: string | undefined
+  authorAvatarUrl?: string | undefined
+  description?: string | undefined
+  tags?: string[] | undefined
+  focalX?: number | undefined
+  focalY?: number | undefined
+}
+
+type UploadParams =
+  | FileUploadParams
+  | UrlUploadParams
+  | MediaFetchUploadParams
+  | StoredAssetUploadParams
 
 function isFileUpload(params: UploadParams): params is FileUploadParams {
   return "file" in params
+}
+
+function isStoredAssetUpload(params: UploadParams): params is StoredAssetUploadParams {
+  return "assetKey" in params
 }
 
 function isMediaFetchUpload(params: UploadParams): params is MediaFetchUploadParams {
@@ -73,6 +94,23 @@ export function useUpload() {
         res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
           method: "POST",
           body: formData,
+        })
+      } else if (isStoredAssetUpload(params)) {
+        res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            assetKey: params.assetKey,
+            mediaType: params.mediaType,
+            sourceUrl: params.sourceUrl,
+            authorName: params.authorName,
+            authorHandle: params.authorHandle,
+            authorAvatarUrl: params.authorAvatarUrl,
+            description: params.description,
+            tags: params.tags,
+            focalX: params.focalX,
+            focalY: params.focalY,
+          }),
         })
       } else if (isMediaFetchUpload(params)) {
         res = await adminFetch(`${import.meta.env.VITE_API_URL}/swipes/upload`, {

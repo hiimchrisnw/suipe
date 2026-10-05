@@ -9,6 +9,9 @@ interface FetchUrlResult {
   authorName?: string
   authorHandle?: string
   authorAvatarUrl?: string
+  rehostRequired?: boolean
+  // Set when the API already pulled the file into R2; preview and save both use this.
+  assetKey?: string
 }
 
 export function useFetchUrl() {

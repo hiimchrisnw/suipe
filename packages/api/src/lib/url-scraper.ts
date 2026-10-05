@@ -8,6 +8,9 @@ interface FetchUrlResult {
   authorHandle?: string
   // Where the avatar lives on the source site. The caller rehosts it; nothing stores this as-is.
   authorAvatarUrl?: string
+  // True when the media host refuses browser requests, so the caller must serve it from our own
+  // origin rather than pointing a page at it.
+  rehostRequired?: boolean
 }
 
 const DIRECT_MEDIA_EXTENSIONS: Record<string, string> = {
@@ -241,15 +244,20 @@ interface SyndicationTweet {
   user?: { name?: string; screen_name?: string; profile_image_url_https?: string }
 }
 
-// Variants are the same clip at several sizes, with the dimensions in the path.
-function widestMp4(variants: SyndicationVariant[]): string | null {
+// Variants are the same clip at several sizes, with the dimensions in the path. The grid shows
+// these small, so take the one nearest 720px rather than the largest — the 1080p-plus variants are
+// several times the bytes for no visible gain.
+const TARGET_VIDEO_WIDTH = 720
+
+function bestMp4(variants: SyndicationVariant[]): string | null {
   let best: string | null = null
-  let bestWidth = -1
+  let bestDistance = Number.POSITIVE_INFINITY
   for (const variant of variants) {
     if (variant.type !== "video/mp4" || !variant.src) continue
     const width = Number(variant.src.match(/\/(\d+)x\d+\//)?.[1] ?? 0)
-    if (width > bestWidth) {
-      bestWidth = width
+    const distance = Math.abs(width - TARGET_VIDEO_WIDTH)
+    if (distance < bestDistance) {
+      bestDistance = distance
       best = variant.src
     }
   }
@@ -283,7 +291,7 @@ async function fetchXMedia(url: string): Promise<FetchUrlResult | null> {
 
   // Video and animated GIF both arrive as mp4 variants; a plain photo post has none.
   const variants = tweet.video?.variants
-  const clip = variants ? widestMp4(variants) : null
+  const clip = variants ? bestMp4(variants) : null
   const photo = tweet.photos?.[0]?.url ?? tweet.mediaDetails?.[0]?.media_url_https
   const media = clip ?? photo
 
@@ -304,6 +312,19 @@ async function fetchXMedia(url: string): Promise<FetchUrlResult | null> {
     ...(name ? { authorName: name } : {}),
     ...(handle ? { authorHandle: `@${handle}` } : {}),
     ...(avatar ? { authorAvatarUrl: avatar } : {}),
+  }
+}
+
+// X answers 403 to any request carrying a Referer, which a browser always sends for media on a
+// page. Workers send none, so we can fetch it server-side — but a page can never load it directly,
+// in the upload preview or in the grid.
+const NO_HOTLINK_HOSTS = new Set(["video.twimg.com", "pbs.twimg.com"])
+
+function requiresRehost(url: string): boolean {
+  try {
+    return NO_HOTLINK_HOSTS.has(new URL(url).hostname)
+  } catch {
+    return false
   }
 }
 
@@ -378,7 +399,7 @@ async function fetchRecentDesignMedia(url: string): Promise<FetchUrlResult | nul
   return await verifyMediaUrl(mediaUrl)
 }
 
-export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
+async function resolveUrlMedia(url: string): Promise<FetchUrlResult> {
   const recent = await fetchRecentDesignMedia(url)
   if (recent) return recent
 
@@ -407,4 +428,9 @@ export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
   }
 
   throw new Error("No media found on page")
+}
+
+export async function fetchUrlMedia(url: string): Promise<FetchUrlResult> {
+  const result = await resolveUrlMedia(url)
+  return requiresRehost(result.url) ? { ...result, rehostRequired: true } : result
 }
