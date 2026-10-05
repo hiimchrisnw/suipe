@@ -10,6 +10,14 @@
     <script>
       // Runs before first paint so the page never flashes the other theme.
       ;(() => {
+        // Pinned while the switcher is parked (SHOW_THEME_TOGGLE in nav.tsx). With no way to
+        // change it from the page, following the OS would strand anyone on a light desktop in a
+        // palette the design was never drawn for. Set to null to go back to the logic below.
+        const PINNED = "dark"
+        if (PINNED) {
+          document.documentElement.dataset.theme = PINNED
+          return
+        }
         let stored = null
         try {
           stored = localStorage.getItem("suipe-theme")

@@ -2,7 +2,7 @@
 // above the trait chip, and in the page body on desktop. Never both — see useIsMobile.
 export function PageTitle() {
   return (
-    <h1 className="max-w-[928px] text-center font-semibold text-[28px] text-paper leading-none tracking-[-0.04em] md:mt-[68px] md:mb-[100px] md:text-left md:text-[40px]">
+    <h1 className="max-w-[928px] text-center font-semibold text-[28px] text-paper leading-none tracking-[-0.04em] md:mt-[68px] md:mb-[100px] md:text-left md:text-[60px]">
       {/* The design breaks the line explicitly rather than letting it wrap. Blocks only from md
           up, so the phone size still wraps to fit whatever width it has. */}
       <span className="md:block">Product personality moments,</span>{" "}
