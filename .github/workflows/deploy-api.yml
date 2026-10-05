@@ -4,10 +4,23 @@ on:
   push:
     branches:
       - main
+    # Only what this deploy actually ships. packages/schemas is listed because both workspaces
+    # consume it, so a shared type change has to redeploy the Worker too.
+    paths:
+      - "packages/api/**"
+      - "packages/schemas/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/deploy-api.yml"
+
+# One deploy at a time, and a newer push supersedes an older one rather than both racing.
+concurrency:
+  group: deploy-api
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 

@@ -107,10 +107,12 @@ GitHub Actions deploys automatically on push to `main`:
 - **`deploy-api.yml`** — deploys `packages/api` to Cloudflare Workers
 - **`deploy-web.yml`** — builds and deploys `apps/web` to Cloudflare Pages project "suipe"
 
-Both run on **every** push to `main`, including docs-only ones — neither has a `paths:` filter.
-That is deliberate rather than an oversight to tidy up: `packages/schemas` is consumed by both
-workspaces, so a filter scoped to `apps/web/**` and `packages/api/**` would skip a deploy that a
-shared schema change actually needed. The cost is two redundant runs per push.
+Each runs only when something it ships changes. The `paths:` filters deliberately include
+`packages/schemas` (both workspaces consume it) and `packages/ui` (the web build consumes it), so a
+shared change still redeploys everything that depends on it. A docs-only push deploys nothing.
+
+Both use `concurrency` with `cancel-in-progress`, so a newer push supersedes an older run instead
+of two deploys racing, and `timeout-minutes: 10` so a stuck job fails fast.
 
 ### Required GitHub Secrets
 

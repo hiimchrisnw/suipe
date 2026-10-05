@@ -4,10 +4,23 @@ on:
   push:
     branches:
       - main
+    # packages/schemas and packages/ui are listed because the web build consumes both.
+    paths:
+      - "apps/web/**"
+      - "packages/schemas/**"
+      - "packages/ui/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/deploy-web.yml"
+
+# One deploy at a time, and a newer push supersedes an older one rather than both racing.
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
