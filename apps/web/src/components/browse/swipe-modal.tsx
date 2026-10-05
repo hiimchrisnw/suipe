@@ -261,9 +261,12 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
             ) : (
               <span />
             )}
-            {/* The handle is stored with its @; the profile path is the bare one. The avatar is
-                an R2 key and is missing on anything saved before it was captured, so the link has
-                to read correctly without it. */}
+            {/* "via", not "by": this is whoever posted it on that platform, which is often not
+                whoever made the thing — the account we first tested with was itself sharing
+                another team's work. Where it was found is verifiable; who made it is not.
+                The handle is stored with its @; the profile path is the bare one. The avatar is an
+                R2 key and is missing on anything saved before it was captured, so the link has to
+                read correctly without it. */}
             {swipe.authorHandle && (
               <a
                 href={`https://x.com/${swipe.authorHandle.replace(/^@/, "")}`}
@@ -279,7 +282,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                     className="size-6 shrink-0 rounded-full object-cover ring-1 ring-black/10"
                   />
                 )}
-                <span>by {swipe.authorHandle}</span>
+                <span>via {swipe.authorHandle}</span>
               </a>
             )}
           </div>
