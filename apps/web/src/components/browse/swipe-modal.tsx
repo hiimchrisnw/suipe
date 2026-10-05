@@ -85,13 +85,15 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
   return createPortal(
     <div
       role="dialog"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 md:p-4"
+      // dvh rather than inset alone: a fixed overlay is laid out against the full viewport, which
+      // on mobile extends underneath the browser chrome.
+      className="fixed inset-0 z-50 flex h-[100dvh] items-center justify-center bg-black/60 p-2 md:p-4"
       onClick={onClose}
       onKeyDown={handleBackdropKeyDown}
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: stopPropagation prevents modal close when clicking content */}
       <div
-        className="flex h-[95vh] w-full max-w-3xl flex-col rounded-lg bg-white p-4 md:p-6"
+        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-lg bg-white p-4 md:p-6"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >

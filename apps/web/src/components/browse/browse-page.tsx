@@ -37,7 +37,7 @@ export function BrowsePage() {
   )
 
   return (
-    <div className="px-4 pt-6 pb-4 md:px-7 md:pt-8 md:pb-7">
+    <div className="px-3 pt-6 pb-3 md:px-7 md:pt-8 md:pb-7">
       {isLoading ? (
         <div className={GRID_CLASS}>
           {Array.from({ length: SKELETON_COUNT }, (_, i) => (

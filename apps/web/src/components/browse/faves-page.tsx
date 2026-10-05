@@ -19,7 +19,7 @@ export function FavesPage() {
   const swipes = data ?? []
 
   return (
-    <div className="px-4 pt-6 pb-4 md:px-7 md:pt-8 md:pb-7">
+    <div className="px-3 pt-6 pb-3 md:px-7 md:pt-8 md:pb-7">
       {likedIds.length === 0 ? (
         <p className="py-20 text-center text-paper/40">
           Nothing saved yet. Tap the heart on a swipe to keep it here.
