@@ -62,7 +62,7 @@ export function Nav() {
               first row and the chip, which keeps the chip as the thing that pins when the bar
               rides up. */}
           {isMobile && (
-            <div className="order-2 col-span-2 mt-10 mb-6 justify-self-center">
+            <div className="order-2 col-span-2 mt-4 mb-6 justify-self-center px-6">
               <PageTitle />
             </div>
           )}
