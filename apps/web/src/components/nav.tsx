@@ -54,7 +54,7 @@ export function Nav() {
       className="sticky top-[calc(var(--nav-stick,52px)*-1)] z-50 relative grid grid-cols-2 items-center gap-y-8 px-4 pt-3 pb-7 font-medium text-base bg-[var(--color-ink-veil)] tracking-[-0.02em] text-paper backdrop-blur-md data-[menu-open=true]:bg-ink data-[menu-open=true]:backdrop-blur-none md:top-0 md:grid-cols-[1fr_auto_1fr] md:gap-y-0 md:px-7 md:pt-8 md:pb-[41px]"
     >
       <a href="/" onClick={(e) => handleClick(e, "/")} className="justify-self-start">
-        suipe
+        sUIpe
       </a>
 
       {/* Filtering only applies to browse; faves has nothing to filter. */}

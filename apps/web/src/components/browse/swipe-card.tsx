@@ -74,14 +74,14 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
           shows red. Static: the tile's radius is the only thing that moves. */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 rounded-[16px] bg-[#ff5247]"
+        className="pointer-events-none absolute inset-0 z-0 rounded-[16px] bg-ink md:bg-[#ff5247]"
       />
 
       <button
         type="button"
         onClick={() => onSelect(swipe)}
         // overflow-hidden clips the focus ring's huge shadow — and every corner — to the tile.
-        className="absolute inset-0 z-10 cursor-pointer overflow-hidden rounded-[16px] bg-ink text-left shadow-[0_0_14px_rgba(0,0,0,0.3)] transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
+        className="absolute inset-0 z-10 cursor-pointer overflow-hidden rounded-[16px] rounded-tr-[112px] bg-ink text-left transition-[border-radius] duration-[553ms] ease-spring md:rounded-tr-[16px] md:shadow-[0_0_14px_rgba(0,0,0,0.3)] md:group-hover:rounded-tr-[112px] md:group-data-[liked=true]:rounded-tr-[112px]"
       >
         {swipe.mediaType === "video" ? (
           <video
@@ -144,7 +144,7 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         {/* The inner hairline follows the same peel. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[16px] border border-paper/10 transition-[border-radius] duration-[553ms] ease-spring group-hover:rounded-tr-[112px] group-data-[liked=true]:rounded-tr-[112px]"
+          className="pointer-events-none absolute inset-0 rounded-[16px] rounded-tr-[112px] border border-paper/10 transition-[border-radius] duration-[553ms] ease-spring md:rounded-tr-[16px] md:group-hover:rounded-tr-[112px] md:group-data-[liked=true]:rounded-tr-[112px]"
         />
       </button>
 
@@ -154,12 +154,14 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         aria-pressed={isLiked}
         aria-label={isLiked ? "Remove from faves" : "Fave"}
         // Rides in with the corner, and stays put once liked.
-        className="pointer-events-none absolute top-[9px] right-[9px] z-0 translate-x-[-16px] translate-y-[16px] scale-75 cursor-pointer opacity-0 transition-[translate,scale,opacity] duration-[553ms] ease-spring group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-data-[liked=true]:pointer-events-auto group-data-[liked=true]:translate-x-0 group-data-[liked=true]:translate-y-0 group-data-[liked=true]:scale-100 group-data-[liked=true]:opacity-100"
+        className="pointer-events-auto absolute top-[3px] right-[3px] z-0 translate-x-0 translate-y-0 scale-100 cursor-pointer opacity-100 transition-[translate,scale,opacity] duration-[553ms] ease-spring md:pointer-events-none md:top-[9px] md:right-[9px] md:translate-x-[-16px] md:translate-y-[16px] md:scale-75 md:opacity-0 md:group-hover:pointer-events-auto md:group-hover:translate-x-0 md:group-hover:translate-y-0 md:group-hover:scale-100 md:group-hover:opacity-100 md:group-data-[liked=true]:pointer-events-auto md:group-data-[liked=true]:translate-x-0 md:group-data-[liked=true]:translate-y-0 md:group-data-[liked=true]:scale-100 md:group-data-[liked=true]:opacity-100"
       >
         {/* White on the red beneath: an outline until liked, then filled. */}
         <Heart
-          className={`size-[22px] text-white ${
-            isLiked ? "animate-[heart-pulse_320ms_ease-out] fill-current" : "fill-none"
+          className={`size-[22px] ${
+            isLiked
+              ? "animate-[heart-pulse_320ms_ease-out] fill-current text-[#ff5247] md:text-white"
+              : "fill-none text-white"
           }`}
           // The outline carries the shape on its own until it fills, so it takes a touch more weight.
           strokeWidth={isLiked ? 1 : 1.25}
