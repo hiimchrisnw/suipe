@@ -3,7 +3,7 @@ import { Heart } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { useIsVisible } from "../../hooks/use-is-visible"
 import { readIconBackground } from "../../lib/icon-color"
-import { getFaviconUrl, getMediaUrl, getSourceDomain } from "../../lib/image-url"
+import { getAssetUrl, getFaviconUrl, getMediaUrl, getSourceDomain } from "../../lib/image-url"
 import { isLiked as readLiked, subscribeLikes, toggleLike } from "../../lib/likes"
 
 interface SwipeCardProps {
@@ -114,31 +114,48 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
           <span aria-hidden="true" className="skeleton pointer-events-none absolute inset-0" />
         )}
 
-        {/* Where it came from: the source site's mark, sat in the opposite corner to the peel. */}
-        {sourceDomain && !faviconFailed && (
+        {/* Who it came from, sat in the opposite corner to the peel. When the poster is known the
+            credit goes to them; the platform's mark is the fallback for everything we only know
+            the site for. */}
+        {swipe.authorAvatar ? (
           <span
-            title={sourceDomain}
-            // The icon sits inset with its own background colour carried out to the rim. The default fill
-            // is white in both themes, since favicons are drawn for light browser tabs.
-            style={faviconBg ? { backgroundColor: faviconBg } : undefined}
-            className="pointer-events-none absolute bottom-2 left-2 flex size-6 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-black/10"
+            title={swipe.authorHandle ?? undefined}
+            className="pointer-events-none absolute bottom-2 left-2 size-6 overflow-hidden rounded-full ring-1 ring-black/10"
           >
-            {X_DOMAINS.has(sourceDomain) ? (
-              <XMark />
-            ) : (
-              <img
-                src={getFaviconUrl(sourceDomain)}
-                alt=""
-                loading="lazy"
-                crossOrigin="anonymous"
-                onLoad={(e) => setFaviconBg(readIconBackground(e.currentTarget))}
-                onError={() => setFaviconFailed(true)}
-                className={`object-contain ${
-                  SMALLER_ICONS.has(sourceDomain) ? "size-[13px]" : "size-[18px]"
-                }`}
-              />
-            )}
+            <img
+              src={getAssetUrl(swipe.authorAvatar)}
+              alt=""
+              loading="lazy"
+              className="size-full object-cover"
+            />
           </span>
+        ) : (
+          sourceDomain &&
+          !faviconFailed && (
+            <span
+              title={sourceDomain}
+              // The icon sits inset with its own background colour carried out to the rim. The default fill
+              // is white in both themes, since favicons are drawn for light browser tabs.
+              style={faviconBg ? { backgroundColor: faviconBg } : undefined}
+              className="pointer-events-none absolute bottom-2 left-2 flex size-6 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-black/10"
+            >
+              {X_DOMAINS.has(sourceDomain) ? (
+                <XMark />
+              ) : (
+                <img
+                  src={getFaviconUrl(sourceDomain)}
+                  alt=""
+                  loading="lazy"
+                  crossOrigin="anonymous"
+                  onLoad={(e) => setFaviconBg(readIconBackground(e.currentTarget))}
+                  onError={() => setFaviconFailed(true)}
+                  className={`object-contain ${
+                    SMALLER_ICONS.has(sourceDomain) ? "size-[13px]" : "size-[18px]"
+                  }`}
+                />
+              )}
+            </span>
+          )
         )}
 
         {/* The inner hairline follows the same peel. */}
