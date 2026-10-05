@@ -110,6 +110,24 @@ body {
   }
 }
 
+/* Holds a card's shape while its media loads. Only opacity animates, so this stays on the
+   compositor however many are on screen at once — a grid of these must not cost anything. */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.skeleton {
+  background-color: var(--color-rule);
+  animation: skeleton-pulse 1600ms ease-in-out infinite;
+  will-change: opacity;
+}
+
 /* A single beat when a swipe is liked. */
 @keyframes heart-pulse {
   0% {
