@@ -20,9 +20,18 @@ export const PRESET_TAGS = [
 ] as const
 
 // Shown beside each trait on the upload form, so tagging stays consistent over time rather than
-// drifting with whatever the word suggests on the day. Partial on purpose: a trait with no note
-// yet simply shows its name.
-export const TRAIT_NOTES: Partial<Record<(typeof PRESET_TAGS)[number], string>> = {
+// drifting with whatever the word suggests on the day. Total rather than partial: adding a trait
+// without writing its note is a type error, which is the point.
+export const TRAIT_NOTES: Record<(typeof PRESET_TAGS)[number], string> = {
+  Calm: "Unhurried and quiet, with nothing pulling at your attention.",
+  Celebratory: "Marks a moment and makes something of it.",
+  Confident: "Sure of itself, with no need to explain or ask permission.",
+  Elegant: "Graceful and refined, with a quality you notice in the finish.",
+  Energetic: "Fast and full of motion, always moving forward.",
+  Friendly: "Easy to approach and talks to you like a person.",
+  Intimate: "Close and personal, as if it's speaking only to you.",
+  Mysterious: "Holds something back and lets you find it.",
+  Nostalgic: "Borrows from the past and makes you remember it fondly.",
   Playful: "Does unnecessary things for the fun of doing them.",
   Precise: "Exact and controlled, with nothing approximate about it.",
   Quirky: "Odd without purpose, strange and untroubled by being strange.",

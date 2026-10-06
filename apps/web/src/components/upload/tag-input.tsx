@@ -46,15 +46,11 @@ export function TagInput({ tags, onChange }: TagInputProps) {
               }`}
             >
               <span className="text-base font-normal">{tag}</span>
-              {note && (
-                <span
-                  className={`text-sm leading-snug ${
-                    isSelected ? "text-white/60" : "text-gray-500"
-                  }`}
-                >
-                  {note}
-                </span>
-              )}
+              <span
+                className={`text-sm leading-snug ${isSelected ? "text-white/60" : "text-gray-500"}`}
+              >
+                {note}
+              </span>
             </button>
           )
         })}
