@@ -19,6 +19,19 @@ export const PRESET_TAGS = [
   "Warm",
 ] as const
 
+// Shown beside each trait on the upload form, so tagging stays consistent over time rather than
+// drifting with whatever the word suggests on the day. Partial on purpose: a trait with no note
+// yet simply shows its name.
+export const TRAIT_NOTES: Partial<Record<(typeof PRESET_TAGS)[number], string>> = {
+  Playful: "Does unnecessary things for the fun of doing them.",
+  Precise: "Exact and controlled, with nothing approximate about it.",
+  Quirky: "Odd without purpose, strange and untroubled by being strange.",
+  Rebellious: "Breaks convention knowingly and refuses what's expected.",
+  Restrained: "Says only what's needed and stops there.",
+  Trustworthy: "Steady and straight with you.",
+  Warm: "Has a heart to it.",
+}
+
 export function useTags() {
   return useQuery({
     queryKey: ["tags"] as const,

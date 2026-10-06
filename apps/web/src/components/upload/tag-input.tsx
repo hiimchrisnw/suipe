@@ -1,5 +1,5 @@
 import { MAX_TRAITS } from "@suipe/schemas"
-import { PRESET_TAGS } from "../../hooks/use-tags"
+import { PRESET_TAGS, TRAIT_NOTES } from "../../hooks/use-tags"
 
 interface TagInputProps {
   tags: string[]
@@ -24,11 +24,14 @@ export function TagInput({ tags, onChange }: TagInputProps) {
         Tags
         <span className="text-base font-normal text-gray-400">{MAX_TRAITS} max</span>
       </span>
-      <div className="flex flex-wrap gap-2">
+      {/* Two columns of cards rather than a row of pills: each trait carries the note that says
+          what it means, so tagging stays consistent months apart. */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {PRESET_TAGS.map((tag) => {
           const isSelected = selected.has(tag)
           // At the cap the rest lock, but a selected tag can always be given back.
           const isBlocked = !isSelected && isAtLimit
+          const note = TRAIT_NOTES[tag]
           return (
             <button
               key={tag}
@@ -36,15 +39,22 @@ export function TagInput({ tags, onChange }: TagInputProps) {
               onClick={() => toggle(tag)}
               disabled={isBlocked}
               aria-pressed={isSelected}
-              className={
+              className={`flex flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-left ${
                 isSelected
-                  ? "rounded-full bg-gray-900 px-4 py-1.5 text-base font-normal text-white"
-                  : `rounded-full bg-gray-100 px-4 py-1.5 text-base font-normal text-gray-600 ${
-                      isBlocked ? "opacity-40" : "hover:bg-gray-200"
-                    }`
-              }
+                  ? "bg-gray-900 text-white"
+                  : `bg-gray-100 text-gray-600 ${isBlocked ? "opacity-40" : "hover:bg-gray-200"}`
+              }`}
             >
-              {tag}
+              <span className="text-base font-normal">{tag}</span>
+              {note && (
+                <span
+                  className={`text-sm leading-snug ${
+                    isSelected ? "text-white/60" : "text-gray-500"
+                  }`}
+                >
+                  {note}
+                </span>
+              )}
             </button>
           )
         })}
