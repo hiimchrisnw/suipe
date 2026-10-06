@@ -26,7 +26,7 @@ export function TagInput({ tags, onChange }: TagInputProps) {
       </span>
       {/* Two columns of cards rather than a row of pills: each trait carries the note that says
           what it means, so tagging stays consistent months apart. */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {PRESET_TAGS.map((tag) => {
           const isSelected = selected.has(tag)
           // At the cap the rest lock, but a selected tag can always be given back.
@@ -47,7 +47,7 @@ export function TagInput({ tags, onChange }: TagInputProps) {
             >
               <span className="text-base font-normal">{tag}</span>
               <span
-                className={`text-sm leading-snug ${isSelected ? "text-white/60" : "text-gray-500"}`}
+                className={`text-[11px] leading-snug ${isSelected ? "text-white/60" : "text-gray-500"}`}
               >
                 {note}
               </span>
