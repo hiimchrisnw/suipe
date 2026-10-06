@@ -303,55 +303,86 @@ export function UploadPage() {
         {/* flex rather than stacked spacing so the drop zone can take the height the trait list
             leaves over, instead of the column ending halfway down. */}
         <div className="flex flex-col gap-3 md:gap-4">
-          {designSpells ? (
-            <div className="flex h-full min-h-48 w-full flex-1 items-center justify-center rounded-xl border-2 border-dashed border-gray-300">
-              {preview ? (
-                <div className="relative inline-block">
+          {/* The drop zone shows the whole frame; the card beside it shows the square crop the
+              grid will actually make, so the focal point can be placed against the real result
+              rather than guessed. Desktop only — it needs the width. */}
+          <div className="flex flex-1 gap-4">
+            {designSpells ? (
+              <div className="flex h-full min-h-48 w-full flex-1 items-center justify-center rounded-xl border-2 border-dashed border-gray-300">
+                {preview ? (
+                  <div className="relative inline-block">
+                    {isVideo ? (
+                      <video
+                        src={preview}
+                        muted
+                        autoPlay
+                        loop
+                        className="block max-h-80 rounded-lg"
+                      />
+                    ) : (
+                      <img src={preview} alt="Preview" className="block max-h-80 rounded-lg" />
+                    )}
+                    <FocalPicker
+                      x={focalX}
+                      y={focalY}
+                      onChange={(x, y) => {
+                        setFocalX(x)
+                        setFocalY(y)
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-base font-normal text-gray-400">
+                    {fetchUrl.isPending ? "Fetching..." : "Paste a Design Spells URL to preview"}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <DropZone
+                onFileSelect={handleFileSelect}
+                preview={preview}
+                isVideo={isVideo}
+                overlay={
+                  preview ? (
+                    <FocalPicker
+                      x={focalX}
+                      y={focalY}
+                      onChange={(x, y) => {
+                        setFocalX(x)
+                        setFocalY(y)
+                      }}
+                    />
+                  ) : undefined
+                }
+              />
+            )}
+
+            {preview && (
+              <div className="hidden w-[220px] shrink-0 flex-col gap-1 lg:flex">
+                <p className="text-base font-normal text-gray-700">Card preview</p>
+                <div className="aspect-square w-full overflow-hidden rounded-[16px] bg-gray-100">
                   {isVideo ? (
                     <video
                       src={preview}
                       muted
                       autoPlay
                       loop
-                      className="block max-h-80 rounded-lg"
+                      playsInline
+                      style={{ objectPosition: `${focalX}% ${focalY}%` }}
+                      className="h-full w-full object-cover"
                     />
                   ) : (
-                    <img src={preview} alt="Preview" className="block max-h-80 rounded-lg" />
+                    <img
+                      src={preview}
+                      alt=""
+                      style={{ objectPosition: `${focalX}% ${focalY}%` }}
+                      className="h-full w-full object-cover"
+                    />
                   )}
-                  <FocalPicker
-                    x={focalX}
-                    y={focalY}
-                    onChange={(x, y) => {
-                      setFocalX(x)
-                      setFocalY(y)
-                    }}
-                  />
                 </div>
-              ) : (
-                <p className="text-base font-normal text-gray-400">
-                  {fetchUrl.isPending ? "Fetching..." : "Paste a Design Spells URL to preview"}
-                </p>
-              )}
-            </div>
-          ) : (
-            <DropZone
-              onFileSelect={handleFileSelect}
-              preview={preview}
-              isVideo={isVideo}
-              overlay={
-                preview ? (
-                  <FocalPicker
-                    x={focalX}
-                    y={focalY}
-                    onChange={(x, y) => {
-                      setFocalX(x)
-                      setFocalY(y)
-                    }}
-                  />
-                ) : undefined
-              }
-            />
-          )}
+              </div>
+            )}
+          </div>
 
           <div>
             <p className="mb-1 text-base font-normal text-gray-700">Source</p>
