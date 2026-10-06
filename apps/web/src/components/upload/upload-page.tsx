@@ -297,12 +297,14 @@ export function UploadPage() {
     : "Where is this from? (optional)"
 
   return (
-    <div className="mx-auto max-w-xl space-y-3 p-4 md:max-w-4xl md:space-y-6 md:p-6">
+    <div className="mx-auto max-w-xl space-y-3 p-4 md:max-w-5xl md:space-y-6 md:p-6 lg:max-w-6xl xl:max-w-[1500px]">
       <h1 className="text-base font-normal">Upload a swipe</h1>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-10">
-        <div className="space-y-3 md:space-y-4">
+        {/* flex rather than stacked spacing so the drop zone can take the height the trait list
+            leaves over, instead of the column ending halfway down. */}
+        <div className="flex flex-col gap-3 md:gap-4">
           {designSpells ? (
-            <div className="flex min-h-48 w-full items-center justify-center rounded-xl border-2 border-dashed border-gray-300">
+            <div className="flex h-full min-h-48 w-full flex-1 items-center justify-center rounded-xl border-2 border-dashed border-gray-300">
               {preview ? (
                 <div className="relative inline-block">
                   {isVideo ? (

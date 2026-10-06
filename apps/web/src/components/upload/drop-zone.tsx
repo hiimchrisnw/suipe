@@ -39,7 +39,7 @@ export function DropZone({ onFileSelect, preview, isVideo, overlay }: DropZonePr
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={() => inputRef.current?.click()}
-      className={`flex min-h-48 w-full cursor-pointer items-center justify-center rounded-xl border-2 border-dashed transition-colors ${
+      className={`flex h-full min-h-48 w-full flex-1 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed transition-colors ${
         isDragging ? "border-gray-900 bg-gray-50" : "border-gray-300 hover:border-gray-400"
       }`}
     >
