@@ -297,9 +297,12 @@ export function UploadPage() {
     : "Where is this from? (optional)"
 
   return (
-    <div className="mx-auto max-w-xl space-y-3 p-4 md:max-w-5xl md:space-y-6 md:p-6 lg:max-w-6xl xl:max-w-[1500px]">
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-3 p-4 md:max-w-5xl md:gap-6 md:p-6 lg:max-w-6xl xl:max-w-[1500px]">
       <h1 className="text-base font-normal">Upload a swipe</h1>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-10">
+      <form
+        onSubmit={handleSubmit}
+        className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-2 md:gap-10"
+      >
         {/* flex rather than stacked spacing so the drop zone can take the height the trait list
             leaves over, instead of the column ending halfway down. */}
         <div className="flex flex-col gap-3 md:gap-4">
@@ -461,13 +464,15 @@ export function UploadPage() {
           </div>
         </div>
 
-        <div className="space-y-3 md:space-y-4">
+        <div className="flex flex-col gap-3 md:gap-4">
           <TagInput tags={tags} onChange={setTags} />
 
+          {/* Pinned to the foot of the column so the extra height opens up above it rather than
+              leaving the button stranded mid-panel. */}
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full rounded-lg bg-gray-900 px-4 py-2 text-base font-normal text-white disabled:opacity-50"
+            className="mt-auto w-full rounded-lg bg-gray-900 px-4 py-2 text-base font-normal text-white disabled:opacity-50"
           >
             {checkDuplicate.isPending
               ? "Checking..."
