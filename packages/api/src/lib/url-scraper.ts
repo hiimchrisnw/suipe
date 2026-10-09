@@ -328,6 +328,60 @@ function requiresRehost(url: string): boolean {
   }
 }
 
+// Savee advertises only a 420px still, even for a clip: a video's og:image is a poster frame at
+// asset-video/w420/<id>.jpg and there is no og:video at all, so a scrape of the tags saves a
+// thumbnail that cannot animate. The asset itself sits beside it under /original/ on the same id,
+// and unlike X it is happy to be hotlinked, so there is nothing to rehost.
+const SAVEE_HOSTS = new Set(["savee.com", "www.savee.com"])
+const SAVEE_SIZED_ASSET = /^\/asset-(video|image)\/w\d+\/([a-z0-9]+)\.([a-z0-9]+)$/i
+
+async function headOk(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { method: "HEAD" })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+async function fetchSaveeMedia(url: string): Promise<FetchUrlResult | null> {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return null
+  }
+  if (!SAVEE_HOSTS.has(parsed.hostname)) return null
+
+  const res = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; Suipe/1.0)" },
+  })
+  if (!res.ok) throw pageFetchError(res.status)
+
+  const html = await res.text()
+  const poster = extractMetaContent(html, "og:image") ?? extractMetaContent(html, "twitter:image")
+  if (!poster || isPlaceholderMedia(poster)) return null
+
+  let posterUrl: URL
+  try {
+    posterUrl = new URL(poster)
+  } catch {
+    return null
+  }
+  const match = posterUrl.pathname.match(SAVEE_SIZED_ASSET)
+  if (!match) return null
+  const [, kind, id, ext] = match
+
+  // A clip's poster is a still, so the original is an mp4 rather than the poster's own extension.
+  const original = new URL(posterUrl)
+  original.search = ""
+  original.pathname = `/asset-${kind}/original/${id}.${kind === "video" ? "mp4" : ext}`
+
+  // Fall through to the ordinary scrape if the original is not there — the poster beats nothing.
+  if (!(await headOk(original.href))) return null
+  return await verifyMediaUrl(original.href)
+}
+
 // A page that renders its media client-side may need several tries before a request lands on a
 // backend that returns fully rendered HTML. Measured against Savee: ~50% of cold requests return
 // the shell, so a handful of spaced attempts turns a coin flip into a near-certainty.
@@ -408,6 +462,9 @@ async function resolveUrlMedia(url: string): Promise<FetchUrlResult> {
 
   const x = await fetchXMedia(url)
   if (x) return x
+
+  const savee = await fetchSaveeMedia(url)
+  if (savee) return savee
 
   const ext = getExtensionFromUrl(url)
   if (ext) {
