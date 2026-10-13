@@ -2,29 +2,13 @@ import type { Swipe } from "@suipe/schemas"
 import { Heart } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { useIsVisible } from "../../hooks/use-is-visible"
-import { readIconBackground } from "../../lib/icon-color"
-import { getAssetUrl, getFaviconUrl, getMediaUrl, getSourceDomain } from "../../lib/image-url"
+import { getMediaUrl, getSourceDomain } from "../../lib/image-url"
 import { isLiked as readLiked, subscribeLikes, toggleLike } from "../../lib/likes"
+import { SourceIcon } from "./source-icon"
 
 interface SwipeCardProps {
   swipe: Swipe
   onSelect: (swipe: Swipe) => void
-}
-
-// Icons that fill their whole square read larger than the rest at the same size, so they sit
-// smaller in the circle. Keyed by source domain.
-const SMALLER_ICONS = new Set(["recent.design"])
-
-// X's own favicon is a white glyph on a black rounded square, which reads as a black box dropped
-// inside the circle. Draw the mark itself instead so it sits like every other source.
-const X_DOMAINS = new Set(["x.com", "twitter.com", "mobile.twitter.com"])
-
-function XMark() {
-  return (
-    <svg viewBox="0 0 1200 1227" aria-hidden="true" className="size-[13px] fill-black">
-      <path d="M714.163 519.284 1160.89 0h-105.86L667.137 450.887 357.328 0H0l468.492 681.821L0 1226.37h105.866l409.625-476.152 327.181 476.152H1200L714.137 519.284h.026ZM569.165 687.828l-47.468-67.894-377.686-540.24h162.604l304.797 435.991 47.468 67.894 396.2 566.721H892.476L569.165 687.854v-.026Z" />
-    </svg>
-  )
 }
 
 // Module-level constants — referentially stable, never re-trigger subscription.
@@ -47,9 +31,6 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
   const isLiked = useSyncExternalStore(subscribeLikes, getLiked, () => false)
   const objectPosition = `${swipe.focalX ?? 50}% ${swipe.focalY ?? 50}%`
   const sourceDomain = getSourceDomain(swipe.sourceUrl)
-  // A site with no favicon drops the avatar rather than showing a broken image.
-  const [faviconFailed, setFaviconFailed] = useState(false)
-  const [faviconBg, setFaviconBg] = useState<string | null>(null)
   // The skeleton covers the tile until there are actual pixels to show.
   const [isMediaReady, setIsMediaReady] = useState(false)
 
@@ -117,46 +98,13 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         {/* Who it came from, sat in the opposite corner to the peel. When the poster is known the
             credit goes to them; the platform's mark is the fallback for everything we only know
             the site for. */}
-        {swipe.authorAvatar ? (
-          <span
-            title={swipe.authorHandle ?? undefined}
-            className="pointer-events-none absolute bottom-2 left-2 size-6 overflow-hidden rounded-full ring-1 ring-black/10"
-          >
-            <img
-              src={getAssetUrl(swipe.authorAvatar)}
-              alt=""
-              loading="lazy"
-              className="size-full object-cover"
-            />
-          </span>
-        ) : (
-          sourceDomain &&
-          !faviconFailed && (
-            <span
-              title={sourceDomain}
-              // The icon sits inset with its own background colour carried out to the rim. The default fill
-              // is white in both themes, since favicons are drawn for light browser tabs.
-              style={faviconBg ? { backgroundColor: faviconBg } : undefined}
-              className="pointer-events-none absolute bottom-2 left-2 flex size-6 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-black/10"
-            >
-              {X_DOMAINS.has(sourceDomain) ? (
-                <XMark />
-              ) : (
-                <img
-                  src={getFaviconUrl(sourceDomain)}
-                  alt=""
-                  loading="lazy"
-                  crossOrigin="anonymous"
-                  onLoad={(e) => setFaviconBg(readIconBackground(e.currentTarget))}
-                  onError={() => setFaviconFailed(true)}
-                  className={`object-contain ${
-                    SMALLER_ICONS.has(sourceDomain) ? "size-[13px]" : "size-[18px]"
-                  }`}
-                />
-              )}
-            </span>
-          )
-        )}
+        <SourceIcon
+          authorAvatar={swipe.authorAvatar}
+          sourceDomain={sourceDomain}
+          title={swipe.authorHandle ?? undefined}
+          size={24}
+          className="pointer-events-none absolute bottom-2 left-2"
+        />
 
         {/* The inner hairline follows the same peel. */}
         <span

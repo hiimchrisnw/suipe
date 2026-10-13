@@ -6,8 +6,9 @@ import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
 import { useTags } from "../../hooks/use-tags"
 import { useUpdateSwipe } from "../../hooks/use-update-swipe"
 import { useIsAdmin } from "../../lib/admin"
-import { getAssetUrl, getFaviconUrl, getMediaUrl, getSourceDomain } from "../../lib/image-url"
+import { getMediaUrl, getSourceDomain } from "../../lib/image-url"
 import { FocalPicker } from "../common/focal-picker"
+import { SourceIcon } from "./source-icon"
 
 function toTitleCase(s: string) {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
@@ -33,8 +34,6 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
     : null
   const creditHref = swipe.sourceUrl ?? profileUrl
   const creditLabel = swipe.authorHandle ?? sourceDomain
-  const creditAvatar = swipe.authorAvatar ? getAssetUrl(swipe.authorAvatar) : null
-  const creditIcon = !creditAvatar && sourceDomain ? getFaviconUrl(sourceDomain) : null
 
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -295,25 +294,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
               rel="noopener noreferrer"
               className="flex items-center gap-2.5 rounded-full border border-rule py-1 pr-4 pl-1 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
             >
-              {creditAvatar ? (
-                <img
-                  src={creditAvatar}
-                  alt=""
-                  loading="lazy"
-                  className="size-7 shrink-0 rounded-full object-cover ring-1 ring-paper/15"
-                />
-              ) : (
-                <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-paper/15">
-                  {creditIcon && (
-                    <img
-                      src={creditIcon}
-                      alt=""
-                      loading="lazy"
-                      className="size-[18px] object-contain"
-                    />
-                  )}
-                </span>
-              )}
+              <SourceIcon authorAvatar={swipe.authorAvatar} sourceDomain={sourceDomain} size={28} />
               <span>via {creditLabel}</span>
               <ExternalLink size={14} className="shrink-0 opacity-60" />
             </a>
