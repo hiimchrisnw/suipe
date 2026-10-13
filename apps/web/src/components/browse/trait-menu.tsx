@@ -1,4 +1,4 @@
-import { MAX_TRAITS } from "@suipe/schemas"
+import { MAX_RECIPE_TRAITS } from "@suipe/schemas"
 import { startTransition, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import dashIcon from "../../assets/dash.svg"
@@ -219,7 +219,7 @@ export function TraitMenu() {
           <div className="trait-bed grid h-full grid-flow-col grid-cols-2 grid-rows-8 gap-px bg-rule pt-px transition-[border-radius] duration-150 ease-out md:mx-7 md:rounded-[28px] md:p-px md:[&>*:first-child]:rounded-tl-[27px] md:[&>*:last-child]:rounded-br-[27px] md:[&>*:nth-child(8)]:rounded-bl-[27px] md:[&>*:nth-child(9)]:rounded-tr-[27px] md:[&>[aria-pressed=true]:first-child]:rounded-tl-[64px] md:[&>[aria-pressed=true]:last-child]:rounded-br-[64px] md:[&>[aria-pressed=true]:nth-child(8)]:rounded-bl-[64px] md:[&>[aria-pressed=true]:nth-child(9)]:rounded-tr-[64px] md:h-auto lg:grid-cols-4 lg:grid-rows-4 lg:[&>*:nth-child(13)]:rounded-tr-[27px] lg:[&>*:nth-child(4)]:rounded-bl-[27px] lg:[&>*:nth-child(8)]:rounded-none lg:[&>*:nth-child(9)]:rounded-none lg:[&>[aria-pressed=true]:nth-child(13)]:rounded-tr-[64px] lg:[&>[aria-pressed=true]:nth-child(4)]:rounded-bl-[64px] lg:[&>[aria-pressed=true]:nth-child(8)]:rounded-none lg:[&>[aria-pressed=true]:nth-child(9)]:rounded-none">
             {(allTags ?? []).map((tag) => {
               const isSelected = emotions.includes(tag)
-              const isBlocked = !isSelected && emotions.length >= MAX_TRAITS
+              const isBlocked = !isSelected && emotions.length >= MAX_RECIPE_TRAITS
               // Struck through only once the counts have actually loaded, so nothing flashes.
               const isEmpty = traitCounts !== undefined && (traitCounts[tag] ?? 0) === 0
               // A dead end leads nowhere, so it stops responding — but a selected trait stays

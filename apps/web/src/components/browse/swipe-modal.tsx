@@ -1,5 +1,4 @@
 import type { Swipe } from "@suipe/schemas"
-import { MAX_TRAITS } from "@suipe/schemas"
 import { ExternalLink, Trash2, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
@@ -56,7 +55,6 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
   const [tags, setTags] = useState(swipe.tags)
   const [tagSearch, setTagSearch] = useState("")
   const [tagInputOpen, setTagInputOpen] = useState(false)
-  const isAtTraitLimit = tags.length >= MAX_TRAITS
   const tagInputRef = useRef<HTMLInputElement>(null)
   const { data: allTags } = useTags()
 
@@ -108,7 +106,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
       role="dialog"
       // dvh rather than inset alone: a fixed overlay is laid out against the full viewport, which
       // on mobile extends underneath the browser chrome.
-      className="fixed inset-0 z-50 flex h-[100dvh] items-center justify-center bg-black/60 p-2 md:p-4"
+      className="fixed inset-0 z-50 flex h-[100dvh] items-center justify-center bg-[var(--color-ink-veil)] p-2 md:p-4"
       onClick={onClose}
       onKeyDown={handleBackdropKeyDown}
     >
@@ -117,7 +115,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
         ref={panelRef}
         // One fixed size whatever the swipe is: the media pane takes the room left over and the
         // clip fits inside it, rather than the panel resizing itself around each file.
-        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-lg bg-white p-4 md:grid md:max-w-6xl md:grid-cols-[1fr_320px] md:grid-rows-[1fr_auto] md:gap-x-6 md:p-6 xl:max-w-[1400px]"
+        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-lg border border-rule bg-ink p-4 text-paper md:grid md:max-w-6xl md:grid-cols-[1fr_320px] md:grid-rows-[1fr_auto] md:gap-x-6 md:p-6 xl:max-w-[1400px]"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
@@ -126,18 +124,18 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-0 right-0 flex items-center justify-center rounded-lg border border-gray-200 p-1.5 text-gray-600 hover:border-gray-300 hover:text-gray-900"
+            className="absolute top-0 right-0 flex items-center justify-center rounded-lg border border-rule p-1.5 text-paper/70 hover:border-paper/40 hover:text-paper"
           >
             <X size={14} />
           </button>
-          {swipe.description && <p className="text-gray-700">{swipe.description}</p>}
+          {swipe.description && <p className="text-paper/80">{swipe.description}</p>}
 
           {/* Editable tag pills */}
           <div className="flex flex-wrap items-center gap-2 pr-10">
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="flex h-[34px] items-center gap-1 rounded-full bg-gray-100 px-4 text-base font-normal text-gray-600"
+                className="flex h-[34px] items-center gap-1 rounded-full bg-paper/10 px-4 text-base font-normal text-paper/70"
               >
                 {tag}
                 {isAdmin && (
@@ -164,14 +162,13 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                     requestAnimationFrame(() => tagInputRef.current?.focus())
                   }}
                   // Swipes from before the cap can sit above it; removing traits unlocks this again.
-                  disabled={isAtTraitLimit}
-                  className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-gray-300 border-dashed px-4 text-base font-normal text-gray-400 hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:text-gray-400"
+                  className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-rule border-dashed px-4 text-base font-normal text-paper/40 hover:border-paper/40 hover:text-paper/70 disabled:opacity-40 disabled:hover:border-paper/40 disabled:hover:text-paper/70"
                 >
                   <span className="text-2xl font-extralight leading-[0]">+</span>
                   <span>Add a trait</span>
                 </button>
-                {tagInputOpen && !isAtTraitLimit && (
-                  <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg md:right-auto md:w-64">
+                {tagInputOpen && (
+                  <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-rule bg-ink shadow-lg md:right-auto md:w-64">
                     <div className="p-2">
                       <input
                         ref={tagInputRef}
@@ -187,12 +184,12 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                             if (value && !tags.includes(value)) handleAddTag(value)
                           }
                         }}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-base font-normal outline-none focus:border-gray-400"
+                        className="w-full rounded-lg border border-rule px-3 py-1.5 text-base font-normal outline-none focus:border-paper/40"
                       />
                     </div>
                     <ul className="max-h-56 overflow-y-auto py-1">
                       {filteredTags.length === 0 ? (
-                        <li className="px-3 py-2 text-base font-normal text-gray-400">
+                        <li className="px-3 py-2 text-base font-normal text-paper/40">
                           Press Enter to add "{toTitleCase(tagSearch.trim())}"
                         </li>
                       ) : (
@@ -206,7 +203,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                                 e.preventDefault()
                                 handleAddTag(tag)
                               }}
-                              className="w-full px-3 py-1.5 text-left text-base font-normal hover:bg-gray-50"
+                              className="w-full px-3 py-1.5 text-left text-base font-normal hover:bg-paper/10"
                             >
                               {tag}
                             </button>
@@ -280,7 +277,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                 href={swipe.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-gray-200 px-3 py-1.5 text-base font-normal text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                className="rounded-lg border border-rule px-3 py-1.5 text-base font-normal text-paper/70 hover:border-paper/40 hover:text-paper"
               >
                 Source <ExternalLink size={14} className="relative -top-0.5 inline" />
               </a>
@@ -298,14 +295,14 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                 href={`https://x.com/${swipe.authorHandle.replace(/^@/, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-base font-normal text-gray-500 hover:text-gray-900"
+                className="flex items-center gap-2 text-base font-normal text-paper/50 hover:text-paper"
               >
                 {swipe.authorAvatar && (
                   <img
                     src={getAssetUrl(swipe.authorAvatar)}
                     alt=""
                     loading="lazy"
-                    className="size-6 shrink-0 rounded-full object-cover ring-1 ring-black/10"
+                    className="size-6 shrink-0 rounded-full object-cover ring-1 ring-paper/15"
                   />
                 )}
                 <span>via {swipe.authorHandle}</span>
@@ -317,7 +314,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
               type="button"
               onClick={handleDelete}
               disabled={deleteSwipe.isPending}
-              className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-base font-normal text-red-600 hover:border-red-300 hover:bg-red-100"
+              className="flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-base font-normal text-red-400 hover:border-red-500/60 hover:bg-red-500/20"
             >
               <Trash2 size={14} />
               {deleteSwipe.isPending ? "Deleting..." : "Delete"}

@@ -1,7 +1,8 @@
 import { z } from "zod"
 
-// A recipe — and a swipe's own traits — are capped at three.
-export const MAX_TRAITS = 3
+// How many traits a recipe can combine. A swipe itself is uncapped: tag it with as much as is
+// true, and the filter stays legible by only ever asking for three at once.
+export const MAX_RECIPE_TRAITS = 3
 
 export const mediaTypeSchema = z.enum(["image", "gif", "video"])
 
