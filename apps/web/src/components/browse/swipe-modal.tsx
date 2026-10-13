@@ -6,7 +6,7 @@ import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
 import { useTags } from "../../hooks/use-tags"
 import { useUpdateSwipe } from "../../hooks/use-update-swipe"
 import { useIsAdmin } from "../../lib/admin"
-import { getAssetUrl, getMediaUrl } from "../../lib/image-url"
+import { getAssetUrl, getFaviconUrl, getMediaUrl, getSourceDomain } from "../../lib/image-url"
 import { FocalPicker } from "../common/focal-picker"
 
 function toTitleCase(s: string) {
@@ -23,6 +23,18 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
   const updateSwipe = useUpdateSwipe()
   const isAdmin = useIsAdmin()
   const url = getMediaUrl(swipe)
+
+  // One credit for the whole swipe. A person when we know one, otherwise the site it came from.
+  // It points at the post itself, since that is what the old Source button opened; the profile is
+  // only the fallback for a swipe credited to someone with no link to the thing.
+  const sourceDomain = getSourceDomain(swipe.sourceUrl)
+  const profileUrl = swipe.authorHandle
+    ? `https://x.com/${swipe.authorHandle.replace(/^@/, "")}`
+    : null
+  const creditHref = swipe.sourceUrl ?? profileUrl
+  const creditLabel = swipe.authorHandle ?? sourceDomain
+  const creditAvatar = swipe.authorAvatar ? getAssetUrl(swipe.authorAvatar) : null
+  const creditIcon = !creditAvatar && sourceDomain ? getFaviconUrl(sourceDomain) : null
 
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -115,16 +127,16 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
         ref={panelRef}
         // One fixed size whatever the swipe is: the media pane takes the room left over and the
         // clip fits inside it, rather than the panel resizing itself around each file.
-        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-lg border border-rule bg-ink p-4 text-paper md:grid md:max-w-6xl md:grid-cols-[1fr_320px] md:grid-rows-[1fr_auto] md:gap-x-6 md:p-6 xl:max-w-[1400px]"
+        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-[16px] border border-rule bg-ink p-4 text-paper shadow-[0_24px_80px_rgba(0,0,0,0.55)] md:max-w-6xl md:p-6 xl:max-w-[1400px]"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <div className="relative mb-3 shrink-0 space-y-3 md:col-start-2 md:row-start-1 md:mb-0 md:min-h-0 md:overflow-y-auto">
+        <div className="relative mb-3 shrink-0 space-y-3 md:mb-4">
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-0 right-0 flex items-center justify-center rounded-lg border border-rule p-1.5 text-paper/70 hover:border-paper/40 hover:text-paper"
+            className="absolute top-0 right-0 flex items-center justify-center rounded-full border border-rule p-2 text-paper/70 hover:border-paper/40 hover:text-paper"
           >
             <X size={14} />
           </button>
@@ -135,7 +147,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="flex h-[34px] items-center gap-1 rounded-full bg-paper/10 px-4 text-base font-normal text-paper/70"
+                className="flex h-[34px] items-center gap-1 rounded-lg bg-paper/10 px-4 text-base font-normal text-paper/70"
               >
                 {tag}
                 {isAdmin && (
@@ -162,7 +174,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                     requestAnimationFrame(() => tagInputRef.current?.focus())
                   }}
                   // Swipes from before the cap can sit above it; removing traits unlocks this again.
-                  className="flex h-[34px] items-center justify-center gap-1 rounded-full border border-rule border-dashed px-4 text-base font-normal text-paper/40 hover:border-paper/40 hover:text-paper/70 disabled:opacity-40 disabled:hover:border-paper/40 disabled:hover:text-paper/70"
+                  className="flex h-[34px] items-center justify-center gap-1 rounded-lg border border-rule border-dashed px-4 text-base font-normal text-paper/40 hover:border-paper/40 hover:text-paper/70 disabled:opacity-40 disabled:hover:border-paper/40 disabled:hover:text-paper/70"
                 >
                   <span className="text-2xl font-extralight leading-[0]">+</span>
                   <span>Add a trait</span>
@@ -218,7 +230,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 items-center justify-center md:col-start-1 md:row-span-2 md:row-start-1">
+        <div className="flex min-h-0 flex-1 items-center justify-center">
           <div className="relative max-h-full max-w-full" style={{ aspectRatio: imageAspect }}>
             {swipe.mediaType === "video" ? (
               <video
@@ -270,51 +282,48 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           </div>
         </div>
 
-        <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-3 md:col-start-2 md:row-start-2">
-          <div className="flex items-center gap-3">
-            {swipe.sourceUrl ? (
-              <a
-                href={swipe.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-lg border border-rule px-3 py-1.5 text-base font-normal text-paper/70 hover:border-paper/40 hover:text-paper"
-              >
-                Source <ExternalLink size={14} className="relative -top-0.5 inline" />
-              </a>
-            ) : (
-              <span />
-            )}
-            {/* "via", not "by": this is whoever posted it on that platform, which is often not
-                whoever made the thing — the account we first tested with was itself sharing
-                another team's work. Where it was found is verifiable; who made it is not.
-                The handle is stored with its @; the profile path is the bare one. The avatar is an
-                R2 key and is missing on anything saved before it was captured, so the link has to
-                read correctly without it. */}
-            {swipe.authorHandle && (
-              <a
-                href={`https://x.com/${swipe.authorHandle.replace(/^@/, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-base font-normal text-paper/50 hover:text-paper"
-              >
-                {swipe.authorAvatar && (
-                  <img
-                    src={getAssetUrl(swipe.authorAvatar)}
-                    alt=""
-                    loading="lazy"
-                    className="size-6 shrink-0 rounded-full object-cover ring-1 ring-paper/15"
-                  />
-                )}
-                <span>via {swipe.authorHandle}</span>
-              </a>
-            )}
-          </div>
+        <div className="mt-4 flex shrink-0 items-center justify-center gap-3">
+          {/* One pill rather than a Source button beside a credit: the avatar sits in the ring of
+              it, the handle reads next to it and the arrow says it leaves the site. "via", not
+              "by" — this is whoever posted it, which is often not whoever made it. Where there is
+              no person, the site's own mark and domain stand in. It points at the post itself,
+              falling back to the profile when that is all we have. */}
+          {creditHref && creditLabel && (
+            <a
+              href={creditHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 rounded-full border border-rule py-1 pr-4 pl-1 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
+            >
+              {creditAvatar ? (
+                <img
+                  src={creditAvatar}
+                  alt=""
+                  loading="lazy"
+                  className="size-7 shrink-0 rounded-full object-cover ring-1 ring-paper/15"
+                />
+              ) : (
+                <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-paper/15">
+                  {creditIcon && (
+                    <img
+                      src={creditIcon}
+                      alt=""
+                      loading="lazy"
+                      className="size-[18px] object-contain"
+                    />
+                  )}
+                </span>
+              )}
+              <span>via {creditLabel}</span>
+              <ExternalLink size={14} className="shrink-0 opacity-60" />
+            </a>
+          )}
           {isAdmin && (
             <button
               type="button"
               onClick={handleDelete}
               disabled={deleteSwipe.isPending}
-              className="flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-base font-normal text-red-400 hover:border-red-500/60 hover:bg-red-500/20"
+              className="flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/10 px-4 py-2 text-base font-normal text-red-400 hover:border-red-500/60 hover:bg-red-500/20"
             >
               <Trash2 size={14} />
               {deleteSwipe.isPending ? "Deleting..." : "Delete"}

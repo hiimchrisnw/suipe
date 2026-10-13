@@ -472,7 +472,7 @@ export function UploadPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="mt-auto w-full rounded-lg bg-gray-900 px-4 py-2 text-base font-normal text-white disabled:opacity-50"
+            className="mt-auto w-full rounded-full bg-gray-900 px-4 py-2.5 text-base font-normal text-white disabled:opacity-50"
           >
             {checkDuplicate.isPending
               ? "Checking..."
