@@ -1,9 +1,10 @@
 import type { Swipe } from "@suipe/schemas"
 import { useQueryClient } from "@tanstack/react-query"
-import { useSyncExternalStore } from "react"
+import { useEffect, useRef, useSyncExternalStore } from "react"
 import { useSwipesByIds } from "../../hooks/use-swipes-by-ids"
 import { getLikedIds, subscribeLikes } from "../../lib/likes"
 import { setSearchParam } from "../../lib/router"
+import { rememberScroll, takeScroll } from "../../lib/scroll-memory"
 import { GRID_CLASS } from "./browse-page"
 import { SwipeCard } from "./swipe-card"
 
@@ -15,6 +16,7 @@ export function FavesPage() {
   const queryClient = useQueryClient()
 
   function openSwipe(swipe: Swipe) {
+    rememberScroll("faves")
     queryClient.setQueryData(["swipes-by-ids", swipe.id], [swipe])
     setSearchParam("swipe", swipe.id)
   }
@@ -23,6 +25,16 @@ export function FavesPage() {
   // here empties the heart without the tile vanishing under the cursor, so a mis-click is undoable
   // until the next visit.
   const swipes = data ?? []
+
+  // legitimate-useeffect: put the page back where it was before a swipe was opened, once there is
+  // something to scroll through. Runs once, and takes the value so a later visit starts at the top.
+  const restoredRef = useRef(false)
+  useEffect(() => {
+    if (restoredRef.current || swipes.length === 0) return
+    restoredRef.current = true
+    const y = takeScroll("faves")
+    if (y > 0) window.scrollTo({ top: y, behavior: "instant" })
+  }, [swipes.length])
 
   return (
     <div className="px-3 pt-6 pb-3 md:px-7 md:pt-8 md:pb-7">

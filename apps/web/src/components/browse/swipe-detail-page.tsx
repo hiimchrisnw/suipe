@@ -16,6 +16,13 @@ import { SourceIcon } from "./source-icon"
 const ICON = 16
 const ICON_WEIGHT = "light" as const
 
+// Matched to the trait chips in the bar on the grid: same height, same horizontal padding, same
+// hairline and the bar's own type, so the two sets of controls read as one family.
+const CONTROL_BASE =
+  "h-[50px] rounded-full border text-base font-medium tracking-[-0.01em] transition-colors"
+const CONTROL = `${CONTROL_BASE} border-paper/30 hover:border-paper/50`
+const CONTROL_ROUND = "flex size-[50px] shrink-0 items-center justify-center"
+
 function toTitleCase(s: string) {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
 }
@@ -66,14 +73,14 @@ function ShareButton({ swipeId }: { swipeId: string }) {
     <button
       type="button"
       onClick={copy}
-      className="flex h-[38px] items-center gap-2 rounded-full border border-rule px-4 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
+      className={`flex size-[50px] shrink-0 items-center justify-center gap-2 text-paper/70 hover:text-paper md:w-auto md:px-4 ${CONTROL}`}
     >
       {copied ? (
         <Check size={ICON} weight={ICON_WEIGHT} />
       ) : (
         <PaperPlaneTilt size={ICON} weight={ICON_WEIGHT} />
       )}
-      <span>{copied ? "Copied" : "Share"}</span>
+      <span className="hidden md:inline">{copied ? "Copied" : "Share"}</span>
     </button>
   )
 }
@@ -90,8 +97,8 @@ function LikeButton({ swipeId }: { swipeId: string }) {
       onClick={() => toggleLike(swipeId)}
       aria-pressed={liked}
       aria-label={liked ? "Remove from faves" : "Fave"}
-      className={`flex size-[38px] shrink-0 items-center justify-center rounded-full border transition-colors ${
-        liked ? "border-[#ff5247] bg-[#ff5247]" : "border-rule hover:border-paper/40"
+      className={`${CONTROL_ROUND} ${CONTROL_BASE} ${
+        liked ? "border-transparent bg-[#ff5247]" : "border-paper/30 hover:border-[#ff5247]"
       }`}
     >
       <Heart
@@ -180,12 +187,13 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
     <div
       // The whole window, since the bar is hidden here: the controls sit in its corners and the
       // swipe holds the middle, with no page scroll.
-      className="flex h-[100dvh] min-h-0 flex-col p-4 text-paper md:p-7"
+      className="flex h-[100dvh] min-h-0 flex-col p-4 text-paper md:p-7 md:pt-8"
     >
       {/* Actions lead: who it came from, a link to this swipe here, and the save. Traits
           moved below the swipe so this row stays about doing things. */}
       <div className="relative mb-3 shrink-0 space-y-3 md:mb-4">
-        <div className="flex flex-wrap items-center gap-2 pr-12">
+        {/* Clears the close button in the corner: its 50px plus a gap. */}
+        <div className="flex items-center gap-2 pr-[58px]">
           {/* One pill rather than a Source button beside a credit: the avatar sits in the ring of
               it, the handle reads next to it and the arrow says it leaves the site. "via", not
               "by" — this is whoever posted it, which is often not whoever made it. Where there is
@@ -196,10 +204,10 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
               href={creditHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 rounded-full border border-rule py-1 pr-4 pl-1 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
+              className={`flex min-w-0 items-center gap-2.5 pr-4 pl-[5px] text-paper/70 hover:text-paper ${CONTROL}`}
             >
-              <SourceIcon authorAvatar={swipe.authorAvatar} sourceDomain={sourceDomain} size={28} />
-              <span>via {creditLabel}</span>
+              <SourceIcon authorAvatar={swipe.authorAvatar} sourceDomain={sourceDomain} size={38} />
+              <span className="truncate">via {creditLabel}</span>
               <ArrowSquareOut size={ICON} weight={ICON_WEIGHT} className="shrink-0" />
             </a>
           )}
@@ -210,7 +218,7 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-0 right-0 flex size-[38px] items-center justify-center rounded-full border border-rule text-paper/70 hover:border-paper/40 hover:text-paper"
+          className={`absolute top-0 right-0 text-paper/70 hover:text-paper ${CONTROL_ROUND} ${CONTROL}`}
         >
           <X size={ICON} weight={ICON_WEIGHT} />
         </button>

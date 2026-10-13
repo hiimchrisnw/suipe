@@ -1,10 +1,11 @@
 import type { Swipe } from "@suipe/schemas"
 import { useQueryClient } from "@tanstack/react-query"
-import { useCallback } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { useIsMobile } from "../../hooks/use-is-mobile"
 import { useSelectedTraits } from "../../hooks/use-selected-traits"
 import { useSwipes } from "../../hooks/use-swipes"
 import { setSearchParam } from "../../lib/router"
+import { rememberScroll, takeScroll } from "../../lib/scroll-memory"
 import { PageTitle } from "./page-title"
 import { SwipeCard } from "./swipe-card"
 
@@ -21,9 +22,20 @@ export function BrowsePage() {
   const queryClient = useQueryClient()
 
   const swipes = data?.pages.flat() ?? []
+
+  // legitimate-useeffect: put the page back where it was before a swipe was opened, once there is
+  // something to scroll through. Runs once, and takes the value so a later visit starts at the top.
+  const restoredRef = useRef(false)
+  useEffect(() => {
+    if (restoredRef.current || swipes.length === 0) return
+    restoredRef.current = true
+    const y = takeScroll("browse")
+    if (y > 0) window.scrollTo({ top: y, behavior: "instant" })
+  }, [swipes.length])
   // The grid already holds the row, so hand it to the detail view's query rather than making it
   // fetch what is on screen.
   function openSwipe(swipe: Swipe) {
+    rememberScroll("browse")
     queryClient.setQueryData(["swipes-by-ids", swipe.id], [swipe])
     setSearchParam("swipe", swipe.id)
   }
