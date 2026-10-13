@@ -1,6 +1,6 @@
 import type { Swipe } from "@suipe/schemas"
 import { useState, useSyncExternalStore } from "react"
-import { useLikedSwipes } from "../../hooks/use-liked-swipes"
+import { useSwipesByIds } from "../../hooks/use-swipes-by-ids"
 import { getLikedIds, subscribeLikes } from "../../lib/likes"
 import { GRID_CLASS } from "./browse-page"
 import { SwipeCard } from "./swipe-card"
@@ -10,7 +10,7 @@ const EMPTY: string[] = []
 
 export function FavesPage() {
   const likedIds = useSyncExternalStore(subscribeLikes, getLikedIds, () => EMPTY)
-  const { data, isLoading } = useLikedSwipes(likedIds)
+  const { data, isLoading } = useSwipesByIds(likedIds)
   const [selected, setSelected] = useState<Swipe | null>(null)
 
   // Deliberately rendered from the fetched list rather than the live id set: un-hearting something

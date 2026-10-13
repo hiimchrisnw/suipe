@@ -1,7 +1,9 @@
 import type { Swipe } from "@suipe/schemas"
 import { useQuery } from "@tanstack/react-query"
 
-// The API caps how many ids it will take at once, so a long list goes in batches.
+// Fetches specific swipes by id: the faves grid, and a swipe opened straight from a shared
+// link before the grid has reached it. The API caps how many ids it takes at once, so a long
+// list goes in batches.
 const BATCH = 100
 
 async function fetchBatch(ids: string[]): Promise<Swipe[]> {
@@ -12,10 +14,10 @@ async function fetchBatch(ids: string[]): Promise<Swipe[]> {
   return res.json() as Promise<Swipe[]>
 }
 
-export function useLikedSwipes(ids: string[]) {
+export function useSwipesByIds(ids: string[]) {
   return useQuery({
     // Sorted so the key does not change when the same set is saved in a different order.
-    queryKey: ["liked-swipes", [...ids].sort().join(",")] as const,
+    queryKey: ["swipes-by-ids", [...ids].sort().join(",")] as const,
     enabled: ids.length > 0,
     queryFn: async (): Promise<Swipe[]> => {
       const batches: string[][] = []

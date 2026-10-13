@@ -1,17 +1,98 @@
 import type { Swipe } from "@suipe/schemas"
-import { ExternalLink, Trash2, X } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { Check, ExternalLink, Heart, Share2, Trash2, X } from "lucide-react"
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { createPortal } from "react-dom"
 import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
 import { useTags } from "../../hooks/use-tags"
 import { useUpdateSwipe } from "../../hooks/use-update-swipe"
 import { useIsAdmin } from "../../lib/admin"
 import { getMediaUrl, getSourceDomain } from "../../lib/image-url"
+import { isLiked as readLiked, subscribeLikes, toggleLike } from "../../lib/likes"
 import { FocalPicker } from "../common/focal-picker"
 import { SourceIcon } from "./source-icon"
 
 function toTitleCase(s: string) {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+// The async clipboard refuses on an insecure origin, without permission, or while the document is
+// unfocused. The old execCommand path has none of those conditions, so it stands behind it.
+async function writeToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    // fall through
+  }
+
+  try {
+    const field = document.createElement("textarea")
+    field.value = text
+    field.setAttribute("readonly", "")
+    field.style.position = "fixed"
+    field.style.opacity = "0"
+    document.body.appendChild(field)
+    field.select()
+    const ok = document.execCommand("copy")
+    document.body.removeChild(field)
+    return ok
+  } catch {
+    return false
+  }
+}
+
+// Copies a link back to this swipe on sUIpe — deliberately not the source, which the credit
+// beside it already opens. The grid reads ?swipe= on load, so the link lands on the open swipe
+// even for someone who has never scrolled that far.
+function ShareButton({ swipeId }: { swipeId: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    const link = `${window.location.origin}/?swipe=${swipeId}`
+    if (await writeToClipboard(link)) {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    }
+    // Nothing happened and nothing is claimed: better a button that did not respond than a
+    // "Copied" over an empty clipboard.
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="flex h-[38px] items-center gap-2 rounded-full border border-rule px-4 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
+    >
+      {copied ? <Check size={14} /> : <Share2 size={14} />}
+      <span>{copied ? "Copied" : "Share"}</span>
+    </button>
+  )
+}
+
+// The same save as the grid's heart, reading the same store, so a swipe hearted here is hearted
+// there the moment the modal closes.
+function LikeButton({ swipeId }: { swipeId: string }) {
+  const getLiked = useCallback(() => readLiked(swipeId), [swipeId])
+  const liked = useSyncExternalStore(subscribeLikes, getLiked, () => false)
+
+  return (
+    <button
+      type="button"
+      onClick={() => toggleLike(swipeId)}
+      aria-pressed={liked}
+      aria-label={liked ? "Remove from faves" : "Fave"}
+      className={`flex size-[38px] shrink-0 items-center justify-center rounded-full border transition-colors ${
+        liked ? "border-[#ff5247] bg-[#ff5247]" : "border-rule hover:border-paper/40"
+      }`}
+    >
+      <Heart
+        className={`size-[18px] ${
+          liked ? "animate-[heart-pulse_320ms_ease-out] fill-current text-white" : "text-paper/70"
+        }`}
+        strokeWidth={liked ? 1 : 1.25}
+      />
+    </button>
+  )
 }
 
 interface SwipeModalProps {
@@ -130,7 +211,34 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
+        {/* Actions lead: who it came from, a link to this swipe here, and the save. Traits
+            moved below the swipe so this row stays about doing things. */}
         <div className="relative mb-3 shrink-0 space-y-3 md:mb-4">
+          <div className="flex flex-wrap items-center gap-2 pr-12">
+            {/* One pill rather than a Source button beside a credit: the avatar sits in the ring of
+                it, the handle reads next to it and the arrow says it leaves the site. "via", not
+                "by" — this is whoever posted it, which is often not whoever made it. Where there is
+                no person, the site's own mark and domain stand in. It points at the post itself,
+                falling back to the profile when that is all we have. */}
+            {creditHref && creditLabel && (
+              <a
+                href={creditHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 rounded-full border border-rule py-1 pr-4 pl-1 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
+              >
+                <SourceIcon
+                  authorAvatar={swipe.authorAvatar}
+                  sourceDomain={sourceDomain}
+                  size={28}
+                />
+                <span>via {creditLabel}</span>
+                <ExternalLink size={14} className="shrink-0 opacity-60" />
+              </a>
+            )}
+            <ShareButton swipeId={swipe.id} />
+            <LikeButton swipeId={swipe.id} />
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -140,93 +248,6 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
             <X size={14} />
           </button>
           {swipe.description && <p className="text-paper/80">{swipe.description}</p>}
-
-          {/* Editable tag pills */}
-          <div className="flex flex-wrap items-center gap-2 pr-10">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="flex h-[34px] items-center gap-1 rounded-lg bg-paper/10 px-4 text-base font-normal text-paper/70"
-              >
-                {tag}
-                {isAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    aria-label={`Remove tag ${tag}`}
-                    className="opacity-40 hover:opacity-70"
-                  >
-                    ×
-                  </button>
-                )}
-              </span>
-            ))}
-
-            {/* Add tag dropdown */}
-            {isAdmin && (
-              <div ref={tagDropdownRef} className="static md:relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTagInputOpen(true)
-                    setTagSearch("")
-                    requestAnimationFrame(() => tagInputRef.current?.focus())
-                  }}
-                  // Swipes from before the cap can sit above it; removing traits unlocks this again.
-                  className="flex h-[34px] items-center justify-center gap-1 rounded-lg border border-rule border-dashed px-4 text-base font-normal text-paper/40 hover:border-paper/40 hover:text-paper/70 disabled:opacity-40 disabled:hover:border-paper/40 disabled:hover:text-paper/70"
-                >
-                  <span className="text-2xl font-extralight leading-[0]">+</span>
-                  <span>Add a trait</span>
-                </button>
-                {tagInputOpen && (
-                  <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-rule bg-ink shadow-lg md:right-auto md:w-64">
-                    <div className="p-2">
-                      <input
-                        ref={tagInputRef}
-                        type="text"
-                        value={tagSearch}
-                        onChange={(e) => setTagSearch(e.target.value)}
-                        placeholder="Search traits..."
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") setTagInputOpen(false)
-                          if (e.key === "Enter") {
-                            e.preventDefault()
-                            const value = toTitleCase(tagSearch.trim())
-                            if (value && !tags.includes(value)) handleAddTag(value)
-                          }
-                        }}
-                        className="w-full rounded-lg border border-rule px-3 py-1.5 text-base font-normal outline-none focus:border-paper/40"
-                      />
-                    </div>
-                    <ul className="max-h-56 overflow-y-auto py-1">
-                      {filteredTags.length === 0 ? (
-                        <li className="px-3 py-2 text-base font-normal text-paper/40">
-                          Press Enter to add "{toTitleCase(tagSearch.trim())}"
-                        </li>
-                      ) : (
-                        filteredTags.map((tag) => (
-                          <li key={tag}>
-                            {/* onMouseDown fires before document mousedown (click-outside),
-                                so the tag is committed before the dropdown closes */}
-                            <button
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                handleAddTag(tag)
-                              }}
-                              className="w-full px-3 py-1.5 text-left text-base font-normal hover:bg-paper/10"
-                            >
-                              {tag}
-                            </button>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
 
         <div className="flex min-h-0 flex-1 items-center justify-center">
@@ -281,25 +302,96 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           </div>
         </div>
 
-        {/* Matches the panel padding below it, so the credit sits in even space. */}
-        <div className="mt-4 flex shrink-0 items-center justify-center gap-3 md:mt-6">
-          {/* One pill rather than a Source button beside a credit: the avatar sits in the ring of
-              it, the handle reads next to it and the arrow says it leaves the site. "via", not
-              "by" — this is whoever posted it, which is often not whoever made it. Where there is
-              no person, the site's own mark and domain stand in. It points at the post itself,
-              falling back to the profile when that is all we have. */}
-          {creditHref && creditLabel && (
-            <a
-              href={creditHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 rounded-full border border-rule py-1 pr-4 pl-1 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
-            >
-              <SourceIcon authorAvatar={swipe.authorAvatar} sourceDomain={sourceDomain} size={28} />
-              <span>via {creditLabel}</span>
-              <ExternalLink size={14} className="shrink-0 opacity-60" />
-            </a>
-          )}
+        {/* Matches the panel padding above it, so the row sits in even space. */}
+        <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-3 md:mt-6">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Editable tag pills */}
+            <div className="flex flex-wrap items-center gap-2 pr-10">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="flex h-[34px] items-center gap-1 rounded-lg bg-paper/10 px-4 text-base font-normal text-paper/70"
+                >
+                  {tag}
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      aria-label={`Remove tag ${tag}`}
+                      className="opacity-40 hover:opacity-70"
+                    >
+                      ×
+                    </button>
+                  )}
+                </span>
+              ))}
+
+              {/* Add tag dropdown */}
+              {isAdmin && (
+                <div ref={tagDropdownRef} className="static md:relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTagInputOpen(true)
+                      setTagSearch("")
+                      requestAnimationFrame(() => tagInputRef.current?.focus())
+                    }}
+                    // Swipes from before the cap can sit above it; removing traits unlocks this again.
+                    className="flex h-[34px] items-center justify-center gap-1 rounded-lg border border-rule border-dashed px-4 text-base font-normal text-paper/40 hover:border-paper/40 hover:text-paper/70 disabled:opacity-40 disabled:hover:border-paper/40 disabled:hover:text-paper/70"
+                  >
+                    <span className="text-2xl font-extralight leading-[0]">+</span>
+                    <span>Add a trait</span>
+                  </button>
+                  {tagInputOpen && (
+                    <div className="absolute right-0 left-0 z-20 mt-1 rounded-lg border border-rule bg-ink shadow-lg md:right-auto md:w-64">
+                      <div className="p-2">
+                        <input
+                          ref={tagInputRef}
+                          type="text"
+                          value={tagSearch}
+                          onChange={(e) => setTagSearch(e.target.value)}
+                          placeholder="Search traits..."
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") setTagInputOpen(false)
+                            if (e.key === "Enter") {
+                              e.preventDefault()
+                              const value = toTitleCase(tagSearch.trim())
+                              if (value && !tags.includes(value)) handleAddTag(value)
+                            }
+                          }}
+                          className="w-full rounded-lg border border-rule px-3 py-1.5 text-base font-normal outline-none focus:border-paper/40"
+                        />
+                      </div>
+                      <ul className="max-h-56 overflow-y-auto py-1">
+                        {filteredTags.length === 0 ? (
+                          <li className="px-3 py-2 text-base font-normal text-paper/40">
+                            Press Enter to add "{toTitleCase(tagSearch.trim())}"
+                          </li>
+                        ) : (
+                          filteredTags.map((tag) => (
+                            <li key={tag}>
+                              {/* onMouseDown fires before document mousedown (click-outside),
+                                  so the tag is committed before the dropdown closes */}
+                              <button
+                                type="button"
+                                onMouseDown={(e) => {
+                                  e.preventDefault()
+                                  handleAddTag(tag)
+                                }}
+                                className="w-full px-3 py-1.5 text-left text-base font-normal hover:bg-paper/10"
+                              >
+                                {tag}
+                              </button>
+                            </li>
+                          ))
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
           {isAdmin && (
             <button
               type="button"
