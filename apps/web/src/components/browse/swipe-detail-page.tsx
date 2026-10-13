@@ -139,6 +139,13 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
   const [focalY, setFocalY] = useState(swipe.focalY ?? 50)
   const [imageAspect, setImageAspect] = useState<number>(1)
 
+  const measureAspect = useCallback((el: HTMLVideoElement | HTMLImageElement | null) => {
+    if (!el) return
+    const w = el instanceof HTMLVideoElement ? el.videoWidth : el.naturalWidth
+    const h = el instanceof HTMLVideoElement ? el.videoHeight : el.naturalHeight
+    if (w > 0 && h > 0) setImageAspect(w / h)
+  }, [])
+
   const [tags, setTags] = useState(swipe.tags)
   const [tagSearch, setTagSearch] = useState("")
   const [tagInputOpen, setTagInputOpen] = useState(false)
@@ -227,12 +234,15 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
 
       <div className="flex min-h-0 flex-1 items-center justify-center">
         <div
-          // The same treatment the grid gives a card, so the swipe reads as the same object.
-          className="relative max-h-full max-w-full overflow-hidden rounded-[16px] border border-paper/10"
+          // No border here: it would shrink the content box below the box the aspect ratio sizes,
+          // leaving the media a couple of pixels short and the corners clipping against the gap.
+          // The hairline is drawn over the top instead, the way a grid card does it.
+          className="relative max-h-full max-w-full overflow-hidden rounded-[16px]"
           style={{ aspectRatio: imageAspect }}
         >
           {swipe.mediaType === "video" ? (
             <video
+              ref={measureAspect}
               src={url}
               controls={showVideoControls}
               muted
@@ -252,10 +262,11 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
                 if (hasLeftVideoRef.current) setShowVideoControls(true)
               }}
               style={{ objectPosition: `${focalX}% ${focalY}%` }}
-              className="block h-full w-full rounded-[16px] object-contain"
+              className="block h-full w-full object-contain"
             />
           ) : (
             <img
+              ref={measureAspect}
               src={url}
               alt={swipe.description ?? ""}
               onLoad={(e) => {
@@ -264,9 +275,14 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
                 if (w > 0 && h > 0) setImageAspect(w / h)
               }}
               style={{ objectPosition: `${focalX}% ${focalY}%` }}
-              className="block h-full w-full rounded-[16px] object-contain"
+              className="block h-full w-full object-contain"
             />
           )}
+          {/* Traces the frame exactly, inside the same clip as the media. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-[16px] border border-paper/10"
+          />
           {isAdmin && (
             <FocalPicker
               x={focalX}
