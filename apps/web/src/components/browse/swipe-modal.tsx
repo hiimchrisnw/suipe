@@ -253,7 +253,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                   if (hasLeftVideoRef.current) setShowVideoControls(true)
                 }}
                 style={{ objectPosition: `${focalX}% ${focalY}%` }}
-                className="block h-full w-full rounded-lg object-contain"
+                className="block h-full w-full rounded-[16px] object-contain"
               />
             ) : (
               <img
@@ -265,7 +265,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                   if (w > 0 && h > 0) setImageAspect(w / h)
                 }}
                 style={{ objectPosition: `${focalX}% ${focalY}%` }}
-                className="block h-full w-full rounded-lg object-contain"
+                className="block h-full w-full rounded-[16px] object-contain"
               />
             )}
             {isAdmin && (
