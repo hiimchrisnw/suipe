@@ -1,5 +1,5 @@
+import { Heart } from "@phosphor-icons/react"
 import type { Swipe } from "@suipe/schemas"
-import { Heart } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { useIsVisible } from "../../hooks/use-is-visible"
 import { getMediaUrl, getSourceDomain } from "../../lib/image-url"
@@ -127,14 +127,16 @@ export function SwipeCard({ swipe, onSelect }: SwipeCardProps) {
         className="pointer-events-auto absolute top-[3px] right-[3px] z-20 flex size-11 translate-x-0 translate-y-0 scale-100 cursor-pointer items-start justify-end opacity-100 transition-[translate,scale,opacity] duration-[553ms] ease-spring md:pointer-events-none md:top-[9px] md:right-[9px] md:z-0 md:size-[22px] md:translate-x-[-16px] md:translate-y-[16px] md:scale-75 md:opacity-0 md:group-hover:pointer-events-auto md:group-hover:translate-x-0 md:group-hover:translate-y-0 md:group-hover:scale-100 md:group-hover:opacity-100 md:group-data-[liked=true]:pointer-events-auto md:group-data-[liked=true]:translate-x-0 md:group-data-[liked=true]:translate-y-0 md:group-data-[liked=true]:scale-100 md:group-data-[liked=true]:opacity-100"
       >
         {/* White on the red beneath: an outline until liked, then filled. */}
+        {/* The outline carries the shape on its own until it fills, so it takes a touch more
+            weight — regular against the light the controls use elsewhere. */}
         <Heart
-          className={`size-[22px] ${
+          size={22}
+          weight={isLiked ? "fill" : "regular"}
+          className={
             isLiked
-              ? "animate-[heart-pulse_320ms_ease-out] fill-current text-[#ff5247] md:text-white"
-              : "fill-none text-white"
-          }`}
-          // The outline carries the shape on its own until it fills, so it takes a touch more weight.
-          strokeWidth={isLiked ? 1 : 1.25}
+              ? "animate-[heart-pulse_320ms_ease-out] text-[#ff5247] md:text-white"
+              : "text-white"
+          }
         />
       </button>
     </div>

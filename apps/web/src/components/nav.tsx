@@ -1,4 +1,4 @@
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun } from "@phosphor-icons/react"
 import { useCallback, useSyncExternalStore } from "react"
 import { useIsMobile } from "../hooks/use-is-mobile"
 import { useIsAdmin } from "../lib/admin"
@@ -96,9 +96,9 @@ export function Nav() {
             className="flex size-[3.125em] shrink-0 cursor-pointer items-center justify-center rounded-full border border-paper/30 transition-colors duration-150 hover:border-paper/60"
           >
             {theme === "dark" ? (
-              <Sun className="size-[1.25em]" strokeWidth={1} />
+              <Sun className="size-[1.25em]" weight="light" />
             ) : (
-              <Moon className="size-[1.25em]" strokeWidth={1} />
+              <Moon className="size-[1.25em]" weight="light" />
             )}
           </button>
         )}

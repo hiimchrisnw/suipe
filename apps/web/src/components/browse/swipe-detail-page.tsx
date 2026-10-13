@@ -1,5 +1,5 @@
+import { ArrowSquareOut, Check, Heart, PaperPlaneTilt, Trash, X } from "@phosphor-icons/react"
 import type { Swipe } from "@suipe/schemas"
-import { Check, ExternalLink, Heart, Send, Trash2, X } from "lucide-react"
 import { useCallback, useRef, useState, useSyncExternalStore } from "react"
 import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
 import { useSwipesByIds } from "../../hooks/use-swipes-by-ids"
@@ -10,6 +10,11 @@ import { getMediaUrl, getSourceDomain } from "../../lib/image-url"
 import { isLiked as readLiked, subscribeLikes, toggleLike } from "../../lib/likes"
 import { FocalPicker } from "../common/focal-picker"
 import { SourceIcon } from "./source-icon"
+
+// One size for every control icon on this page, so they cannot drift apart again. Light is the
+// weight that matches the 1px strokes the rest of the site is drawn with.
+const ICON = 16
+const ICON_WEIGHT = "light" as const
 
 function toTitleCase(s: string) {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
@@ -63,7 +68,11 @@ function ShareButton({ swipeId }: { swipeId: string }) {
       onClick={copy}
       className="flex h-[38px] items-center gap-2 rounded-full border border-rule px-4 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
     >
-      {copied ? <Check size={16} /> : <Send size={16} />}
+      {copied ? (
+        <Check size={ICON} weight={ICON_WEIGHT} />
+      ) : (
+        <PaperPlaneTilt size={ICON} weight={ICON_WEIGHT} />
+      )}
       <span>{copied ? "Copied" : "Share"}</span>
     </button>
   )
@@ -86,10 +95,9 @@ function LikeButton({ swipeId }: { swipeId: string }) {
       }`}
     >
       <Heart
-        className={`size-[16px] ${
-          liked ? "animate-[heart-pulse_320ms_ease-out] fill-current text-white" : "text-paper/70"
-        }`}
-        strokeWidth={liked ? 1 : 1.25}
+        size={ICON}
+        weight={liked ? "fill" : ICON_WEIGHT}
+        className={liked ? "animate-[heart-pulse_320ms_ease-out] text-white" : "text-paper/70"}
       />
     </button>
   )
@@ -192,7 +200,7 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
             >
               <SourceIcon authorAvatar={swipe.authorAvatar} sourceDomain={sourceDomain} size={28} />
               <span>via {creditLabel}</span>
-              <ExternalLink size={16} className="shrink-0" />
+              <ArrowSquareOut size={ICON} weight={ICON_WEIGHT} className="shrink-0" />
             </a>
           )}
           <ShareButton swipeId={swipe.id} />
@@ -204,7 +212,7 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
           aria-label="Close"
           className="absolute top-0 right-0 flex size-[38px] items-center justify-center rounded-full border border-rule text-paper/70 hover:border-paper/40 hover:text-paper"
         >
-          <X size={16} />
+          <X size={ICON} weight={ICON_WEIGHT} />
         </button>
         {swipe.description && <p className="text-paper/80">{swipe.description}</p>}
       </div>
@@ -362,7 +370,7 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
             disabled={deleteSwipe.isPending}
             className="flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/10 px-4 py-2 text-base font-normal text-red-400 hover:border-red-500/60 hover:bg-red-500/20"
           >
-            <Trash2 size={14} />
+            <Trash size={ICON} weight={ICON_WEIGHT} />
             {deleteSwipe.isPending ? "Deleting..." : "Delete"}
           </button>
         )}
