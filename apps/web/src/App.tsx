@@ -1,19 +1,25 @@
 import { AdminPage } from "./components/admin-page"
 import { BrowsePage } from "./components/browse/browse-page"
 import { FavesPage } from "./components/browse/faves-page"
+import { SwipeDetailRoute } from "./components/browse/swipe-detail-page"
 import { Nav } from "./components/nav"
 import { UploadPage } from "./components/upload/upload-page"
 import { useIsAdmin } from "./lib/admin"
-import { usePathname } from "./lib/router"
+import { setSearchParam, usePathname, useSearchParam } from "./lib/router"
 
 export function App() {
   const pathname = usePathname()
   const isAdmin = useIsAdmin()
+  // A swipe link opens the detail view wherever it is followed from, grid or faves.
+  const openSwipeId = useSearchParam("swipe")
 
   return (
-    <div className="min-h-screen bg-ink font-light text-paper">
-      <Nav />
-      {pathname === "/faves" ? (
+    <div className="flex min-h-screen flex-col bg-ink font-light text-paper">
+      {/* The detail view is its own screen: no bar, so the swipe takes the whole window. */}
+      {!openSwipeId && <Nav />}
+      {openSwipeId ? (
+        <SwipeDetailRoute id={openSwipeId} onClose={() => setSearchParam("swipe", null)} />
+      ) : pathname === "/faves" ? (
         <FavesPage />
       ) : pathname === "/admin" ? (
         <AdminPage />

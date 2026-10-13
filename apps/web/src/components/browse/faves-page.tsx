@@ -1,17 +1,23 @@
 import type { Swipe } from "@suipe/schemas"
-import { useState, useSyncExternalStore } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useSyncExternalStore } from "react"
 import { useSwipesByIds } from "../../hooks/use-swipes-by-ids"
 import { getLikedIds, subscribeLikes } from "../../lib/likes"
+import { setSearchParam } from "../../lib/router"
 import { GRID_CLASS } from "./browse-page"
 import { SwipeCard } from "./swipe-card"
-import { SwipeModal } from "./swipe-modal"
 
 const EMPTY: string[] = []
 
 export function FavesPage() {
   const likedIds = useSyncExternalStore(subscribeLikes, getLikedIds, () => EMPTY)
   const { data, isLoading } = useSwipesByIds(likedIds)
-  const [selected, setSelected] = useState<Swipe | null>(null)
+  const queryClient = useQueryClient()
+
+  function openSwipe(swipe: Swipe) {
+    queryClient.setQueryData(["swipes-by-ids", swipe.id], [swipe])
+    setSearchParam("swipe", swipe.id)
+  }
 
   // Deliberately rendered from the fetched list rather than the live id set: un-hearting something
   // here empties the heart without the tile vanishing under the cursor, so a mis-click is undoable
@@ -33,11 +39,10 @@ export function FavesPage() {
       ) : (
         <div className={GRID_CLASS}>
           {swipes.map((swipe) => (
-            <SwipeCard key={swipe.id} swipe={swipe} onSelect={setSelected} />
+            <SwipeCard key={swipe.id} swipe={swipe} onSelect={openSwipe} />
           ))}
         </div>
       )}
-      {selected && <SwipeModal swipe={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }

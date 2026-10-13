@@ -1,18 +1,15 @@
 import type { Swipe } from "@suipe/schemas"
-import { useCallback, useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useCallback } from "react"
 import { useIsMobile } from "../../hooks/use-is-mobile"
 import { useSelectedTraits } from "../../hooks/use-selected-traits"
 import { useSwipes } from "../../hooks/use-swipes"
-import { useSwipesByIds } from "../../hooks/use-swipes-by-ids"
-import { setSearchParam, useSearchParam } from "../../lib/router"
+import { setSearchParam } from "../../lib/router"
 import { PageTitle } from "./page-title"
 import { SwipeCard } from "./swipe-card"
-import { SwipeModal } from "./swipe-modal"
 
 // Enough to fill a large screen; the real grid replaces them as soon as the first page lands.
 const SKELETON_COUNT = 12
-
-const EMPTY_IDS: string[] = []
 
 export const GRID_CLASS = "grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
 
@@ -21,24 +18,14 @@ export function BrowsePage() {
   const isMobile = useIsMobile()
   const { data, isLoading, isPlaceholderData, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useSwipes(emotions.length > 0 ? emotions : undefined)
-  // The open swipe lives in the URL so it can be shared and so Back closes it. A link may arrive
-  // for a swipe the grid has not paged to yet, so fall back to fetching that one by id.
-  const openId = useSearchParam("swipe")
-  const [selected, setSelected] = useState<Swipe | null>(null)
+  const queryClient = useQueryClient()
 
   const swipes = data?.pages.flat() ?? []
-  const loaded = openId ? swipes.find((s) => s.id === openId) : undefined
-  const { data: fetched } = useSwipesByIds(openId && !loaded ? [openId] : EMPTY_IDS)
-  const open = selected ?? loaded ?? fetched?.[0] ?? null
-
+  // The grid already holds the row, so hand it to the detail view's query rather than making it
+  // fetch what is on screen.
   function openSwipe(swipe: Swipe) {
-    setSelected(swipe)
+    queryClient.setQueryData(["swipes-by-ids", swipe.id], [swipe])
     setSearchParam("swipe", swipe.id)
-  }
-
-  function closeSwipe() {
-    setSelected(null)
-    setSearchParam("swipe", null)
   }
 
   // React 19 callback ref — returns cleanup function, no useEffect needed
@@ -90,7 +77,6 @@ export function BrowsePage() {
       )}
       <div ref={sentinelRef} aria-hidden="true" />
       {isFetchingNextPage && <p className="py-4 text-center text-paper/40">Loading more...</p>}
-      {open && <SwipeModal swipe={open} onClose={closeSwipe} />}
     </div>
   )
 }

@@ -57,7 +57,7 @@ export function Nav() {
         sUIpe
       </a>
 
-      {/* Filtering only applies to browse; faves has nothing to filter. */}
+      {/* Filtering only applies to the grid; faves has nothing to filter. */}
       {(pathname === "/upload" && isAdmin) || pathname === "/admin" || pathname === "/faves" ? (
         <div data-recipe-row className="order-last col-span-2 md:order-none md:col-span-1" />
       ) : (
