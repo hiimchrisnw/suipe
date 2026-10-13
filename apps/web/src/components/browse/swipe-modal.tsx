@@ -63,7 +63,7 @@ function ShareButton({ swipeId }: { swipeId: string }) {
       onClick={copy}
       className="flex h-[38px] items-center gap-2 rounded-full border border-rule px-4 text-base font-normal text-paper/70 transition-colors hover:border-paper/40 hover:text-paper"
     >
-      {copied ? <Check size={14} /> : <Share2 size={14} />}
+      {copied ? <Check size={16} /> : <Share2 size={16} />}
       <span>{copied ? "Copied" : "Share"}</span>
     </button>
   )
@@ -86,7 +86,7 @@ function LikeButton({ swipeId }: { swipeId: string }) {
       }`}
     >
       <Heart
-        className={`size-[18px] ${
+        className={`size-[16px] ${
           liked ? "animate-[heart-pulse_320ms_ease-out] fill-current text-white" : "text-paper/70"
         }`}
         strokeWidth={liked ? 1 : 1.25}
@@ -233,7 +233,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
                   size={28}
                 />
                 <span>via {creditLabel}</span>
-                <ExternalLink size={14} className="shrink-0 opacity-60" />
+                <ExternalLink size={16} className="shrink-0" />
               </a>
             )}
             <ShareButton swipeId={swipe.id} />
@@ -243,9 +243,9 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-0 right-0 flex items-center justify-center rounded-full border border-rule p-2 text-paper/70 hover:border-paper/40 hover:text-paper"
+            className="absolute top-0 right-0 flex size-[38px] items-center justify-center rounded-full border border-rule text-paper/70 hover:border-paper/40 hover:text-paper"
           >
-            <X size={14} />
+            <X size={16} />
           </button>
           {swipe.description && <p className="text-paper/80">{swipe.description}</p>}
         </div>
