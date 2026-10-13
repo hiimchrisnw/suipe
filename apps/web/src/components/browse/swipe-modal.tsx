@@ -1,7 +1,7 @@
 import type { Swipe } from "@suipe/schemas"
 import { MAX_TRAITS } from "@suipe/schemas"
 import { ExternalLink, Trash2, X } from "lucide-react"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useDeleteSwipe } from "../../hooks/use-delete-swipe"
 import { useTags } from "../../hooks/use-tags"
@@ -24,6 +24,27 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
   const updateSwipe = useUpdateSwipe()
   const isAdmin = useIsAdmin()
   const url = getMediaUrl(swipe)
+
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // legitimate-useeffect: the grid behind the modal is covered but still decoding video, which is
+  // wasted work. Resume exactly what was playing, so cards that were already out of view stay
+  // paused. The modal's own clip is excluded — it is the thing being looked at.
+  useEffect(() => {
+    const panel = panelRef.current
+    const videos = [...document.querySelectorAll("video")].filter(
+      (video) => !video.paused && !panel?.contains(video),
+    )
+    for (const video of videos) video.pause()
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      for (const video of videos) void video.play().catch(() => {})
+    }
+  }, [])
 
   const [showVideoControls, setShowVideoControls] = useState(false)
   const hasLeftVideoRef = useRef(false)
@@ -93,23 +114,26 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: stopPropagation prevents modal close when clicking content */}
       <div
-        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-lg bg-white p-4 md:p-6"
+        ref={panelRef}
+        // One fixed size whatever the swipe is: the media pane takes the room left over and the
+        // clip fits inside it, rather than the panel resizing itself around each file.
+        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-lg bg-white p-4 md:grid md:max-w-6xl md:grid-cols-[1fr_320px] md:grid-rows-[1fr_auto] md:gap-x-6 md:p-6 xl:max-w-[1400px]"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <div className="relative mb-3 shrink-0 space-y-3 md:mb-4">
+        <div className="relative mb-3 shrink-0 space-y-3 md:col-start-2 md:row-start-1 md:mb-0 md:min-h-0 md:overflow-y-auto">
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-0 right-0 flex items-center justify-center rounded-lg border border-gray-200 p-1.5 text-gray-600 hover:border-gray-300 hover:text-gray-900 md:hidden"
+            className="absolute top-0 right-0 flex items-center justify-center rounded-lg border border-gray-200 p-1.5 text-gray-600 hover:border-gray-300 hover:text-gray-900"
           >
             <X size={14} />
           </button>
           {swipe.description && <p className="text-gray-700">{swipe.description}</p>}
 
           {/* Editable tag pills */}
-          <div className="flex flex-wrap items-center gap-2 pr-10 md:pr-0">
+          <div className="flex flex-wrap items-center gap-2 pr-10">
             {tags.map((tag) => (
               <span
                 key={tag}
@@ -197,7 +221,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 items-center justify-center">
+        <div className="flex min-h-0 flex-1 items-center justify-center md:col-start-1 md:row-span-2 md:row-start-1">
           <div className="relative max-h-full max-w-full" style={{ aspectRatio: imageAspect }}>
             {swipe.mediaType === "video" ? (
               <video
@@ -249,7 +273,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           </div>
         </div>
 
-        <div className="mt-4 flex shrink-0 items-center justify-between">
+        <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-3 md:col-start-2 md:row-start-2">
           <div className="flex items-center gap-3">
             {swipe.sourceUrl ? (
               <a
