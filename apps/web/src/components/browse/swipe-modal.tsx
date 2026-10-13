@@ -126,7 +126,7 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
         ref={panelRef}
         // One fixed size whatever the swipe is: the media pane takes the room left over and the
         // clip fits inside it, rather than the panel resizing itself around each file.
-        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-[16px] border border-rule bg-ink p-4 text-paper shadow-[0_24px_80px_rgba(0,0,0,0.55)] md:max-w-6xl md:p-6 xl:max-w-[1400px]"
+        className="flex h-[95dvh] max-h-full w-full max-w-3xl flex-col rounded-[16px] border border-paper/10 bg-ink p-4 text-paper shadow-[0_24px_80px_rgba(0,0,0,0.55)] md:max-w-6xl md:p-6 xl:max-w-[1400px]"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
@@ -281,7 +281,8 @@ export function SwipeModal({ swipe, onClose }: SwipeModalProps) {
           </div>
         </div>
 
-        <div className="mt-4 flex shrink-0 items-center justify-center gap-3">
+        {/* Matches the panel padding below it, so the credit sits in even space. */}
+        <div className="mt-4 flex shrink-0 items-center justify-center gap-3 md:mt-6">
           {/* One pill rather than a Source button beside a credit: the avatar sits in the ring of
               it, the handle reads next to it and the arrow says it leaves the site. "via", not
               "by" — this is whoever posted it, which is often not whoever made it. Where there is
