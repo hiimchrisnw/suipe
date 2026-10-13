@@ -56,7 +56,7 @@ async function writeToClipboard(text: string): Promise<boolean> {
 // Copies a link back to this swipe on sUIpe — deliberately not the source, which the credit
 // beside it already opens. The grid reads ?swipe= on load, so the link lands on the open swipe
 // even for someone who has never scrolled that far.
-function ShareButton({ swipeId }: { swipeId: string }) {
+function ShareButton({ swipeId, className = "" }: { swipeId: string; className?: string }) {
   const [copied, setCopied] = useState(false)
 
   async function copy() {
@@ -73,21 +73,21 @@ function ShareButton({ swipeId }: { swipeId: string }) {
     <button
       type="button"
       onClick={copy}
-      className={`flex size-[50px] shrink-0 items-center justify-center gap-2 text-paper/70 hover:text-paper md:w-auto md:px-4 ${CONTROL}`}
+      className={`flex items-center justify-center gap-2 px-4 text-paper/70 hover:text-paper ${CONTROL} ${className}`}
     >
       {copied ? (
         <Check size={ICON} weight={ICON_WEIGHT} />
       ) : (
         <PaperPlaneTilt size={ICON} weight={ICON_WEIGHT} />
       )}
-      <span className="hidden md:inline">{copied ? "Copied" : "Share"}</span>
+      <span>{copied ? "Copied" : "Share"}</span>
     </button>
   )
 }
 
 // The same save as the grid's heart, reading the same store, so a swipe hearted here is hearted
 // there the moment the modal closes.
-function LikeButton({ swipeId }: { swipeId: string }) {
+function LikeButton({ swipeId, className = "" }: { swipeId: string; className?: string }) {
   const getLiked = useCallback(() => readLiked(swipeId), [swipeId])
   const liked = useSyncExternalStore(subscribeLikes, getLiked, () => false)
 
@@ -97,9 +97,9 @@ function LikeButton({ swipeId }: { swipeId: string }) {
       onClick={() => toggleLike(swipeId)}
       aria-pressed={liked}
       aria-label={liked ? "Remove from faves" : "Fave"}
-      className={`${CONTROL_ROUND} ${CONTROL_BASE} ${
+      className={`flex items-center justify-center ${CONTROL_BASE} ${
         liked ? "border-transparent bg-[#ff5247]" : "border-paper/30 hover:border-[#ff5247]"
-      }`}
+      } ${className}`}
     >
       <Heart
         size={ICON}
@@ -211,8 +211,8 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
               <ArrowSquareOut size={ICON} weight={ICON_WEIGHT} className="shrink-0" />
             </a>
           )}
-          <ShareButton swipeId={swipe.id} />
-          <LikeButton swipeId={swipe.id} />
+          <ShareButton swipeId={swipe.id} className="hidden shrink-0 md:flex" />
+          <LikeButton swipeId={swipe.id} className={`hidden md:flex ${CONTROL_ROUND}`} />
         </div>
         <button
           type="button"
@@ -283,7 +283,8 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
 
       {/* Matches the panel padding above it, so the row sits in even space. */}
       <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-3 md:mt-6">
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Traits are desktop-only for now — a phone gets the two actions in this space. */}
+        <div className="hidden flex-wrap items-center gap-2 md:flex">
           {/* Editable tag pills */}
           <div className="flex flex-wrap items-center gap-2 pr-10">
             {tags.map((tag) => (
@@ -382,6 +383,12 @@ function SwipeDetailPage({ swipe, onClose }: SwipeDetailPageProps) {
             {deleteSwipe.isPending ? "Deleting..." : "Delete"}
           </button>
         )}
+      </div>
+
+      {/* Phones only: share and save sit under the swipe, each taking half the width. */}
+      <div className="mt-4 grid shrink-0 grid-cols-2 gap-2 md:hidden">
+        <ShareButton swipeId={swipe.id} className="w-full" />
+        <LikeButton swipeId={swipe.id} className="w-full" />
       </div>
     </div>
   )
